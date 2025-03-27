@@ -1,4 +1,8 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE}
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -8,6 +12,8 @@ spring:
     init:
       mode: never
   jpa:
+    hibernate:
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect

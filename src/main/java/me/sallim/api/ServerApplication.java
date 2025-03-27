@@ -1,4 +1,4 @@
-package capstone.Server;
+package me.sallim.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

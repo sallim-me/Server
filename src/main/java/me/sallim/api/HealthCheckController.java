@@ -1,5 +1,6 @@
-package capstone.Server.controller;
+package me.sallim.api;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,9 +9,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Profile("dev")
 @RestController
-@RequestMapping("/test")
-public class TestController {
+@RequestMapping("/health-check")
+public class HealthCheckController {
 
     @GetMapping
     public String getCurrentTime() {
