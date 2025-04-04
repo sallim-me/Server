@@ -1,0 +1,10 @@
+package me.sallim.api.domain.member.repository;
+
+import me.sallim.api.domain.member.model.Member;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface MemberRepository extends JpaRepository<Member, Long> {
+    Optional<Member> findByUsername(String username); // 중복 체크나 로그인용
+}
