@@ -1,4 +1,4 @@
-package me.sallim.api.domain.member.dto;
+package me.sallim.api.domain.member.dto.request;
 
 import lombok.Builder;
 

@@ -38,4 +38,8 @@ public class AuthService {
 
         return new TokenResponseDTO(accessToken, refreshToken);
     }
+
+    public void logout(Long memberId) {
+        refreshTokenRepository.deleteById(memberId);
+    }
 }

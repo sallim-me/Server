@@ -43,4 +43,16 @@ public class Member extends BaseEntity {
     public void withdraw() {
         this.delete();
     }
+
+    public void updateUsername(String username) {
+        this.username = username;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateIsBuyer(Boolean isBuyer) {
+        this.isBuyer = isBuyer;
+    }
 }
