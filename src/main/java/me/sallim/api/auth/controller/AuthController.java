@@ -9,10 +9,7 @@ import me.sallim.api.global.response.ApiResponse;
 import me.sallim.api.global.security.dto.LoginRequestDTO;
 import me.sallim.api.global.security.dto.TokenResponseDTO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -48,5 +45,26 @@ public class AuthController {
     public ResponseEntity<?> logout(@LoginMember Member member) {
         authService.logout(member.getId());
         return ResponseEntity.ok(ApiResponse.success("로그아웃 성공"));
+    }
+
+    @Operation(
+            summary = "Access/Refresh 토큰 재발급 API",
+            description = """
+    저장된 Refresh Token을 통해 Access Token을 재발급합니다.
+    efresh Token을 헤더에 설정한 후 요청.
+
+    ### 응답 예시:
+    ```json
+    {
+      "access-token": "new-access-token-abc",
+      "refresh-token": "new-refresh-token-xyz"
+    }
+    ```
+    """
+    )
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissue(@RequestHeader(value = "Authorization", required = false) String refreshTokenHeader) {
+        TokenResponseDTO token = authService.reissue(refreshTokenHeader);
+        return ResponseEntity.ok(ApiResponse.success(token));
     }
 }

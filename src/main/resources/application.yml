@@ -23,3 +23,7 @@ spring:
         hbm2ddl:
           auto: ${JPA_HIBERNATE_DDL_AUTO:none}
         default_batch_fetch_size: 1000
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-validity-in-seconds: 2592000
+    refresh-token-validity-in-seconds: 2592000
