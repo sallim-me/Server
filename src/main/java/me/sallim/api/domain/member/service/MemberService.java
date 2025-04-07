@@ -1,11 +1,14 @@
 package me.sallim.api.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
-import me.sallim.api.domain.member.dto.MemberJoinRequestDTO;
+import me.sallim.api.domain.member.converter.MemberConverter;
+import me.sallim.api.domain.member.dto.request.MemberJoinRequestDTO;
+import me.sallim.api.domain.member.dto.request.MemberUpdateRequestDTO;
 import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,5 +33,10 @@ public class MemberService {
                 .build();
 
         return memberRepository.save(member).getId();
+    }
+
+    @Transactional
+    public void updateProfile(Member member, MemberUpdateRequestDTO request) {
+        MemberConverter.updateMember(member, request, passwordEncoder);
     }
 }
