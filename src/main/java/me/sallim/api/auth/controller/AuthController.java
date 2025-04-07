@@ -1,6 +1,7 @@
 package me.sallim.api.auth.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.auth.service.AuthService;
 import me.sallim.api.domain.member.model.Member;
@@ -63,7 +64,8 @@ public class AuthController {
     """
     )
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(@RequestHeader(value = "Authorization", required = false) String refreshTokenHeader) {
+    public ResponseEntity<?> reissue(HttpServletRequest request) {
+        String refreshTokenHeader = request.getHeader("Authorization");
         TokenResponseDTO token = authService.reissue(refreshTokenHeader);
         return ResponseEntity.ok(ApiResponse.success(token));
     }
