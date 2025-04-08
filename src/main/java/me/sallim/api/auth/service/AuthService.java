@@ -10,6 +10,7 @@ import me.sallim.api.global.security.jwt.RefreshToken;
 import me.sallim.api.global.security.jwt.RefreshTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,18 +29,42 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        // Access + Refresh 토큰 발급
         String accessToken = jwtTokenProvider.createAccessToken(member.getUsername());
-        String refreshToken = jwtTokenProvider.createRefreshToken();
+        String refreshToken = jwtTokenProvider.createRefreshToken(member.getUsername());
 
-        // Refresh 토큰 Redis에 저장
-        RefreshToken token = new RefreshToken(member.getId(), refreshToken);
-        refreshTokenRepository.save(token);
+        refreshTokenRepository.save(new RefreshToken(member.getId(), refreshToken));
 
         return new TokenResponseDTO(accessToken, refreshToken);
     }
 
     public void logout(Long memberId) {
         refreshTokenRepository.deleteById(memberId);
+    }
+
+    @Transactional
+    public TokenResponseDTO reissue(String refreshTokenHeader) {
+        String refreshToken = jwtTokenProvider.resolveToken(refreshTokenHeader);
+
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new IllegalArgumentException("유효하지 않은 refresh token입니다.");
+        }
+
+        String username = jwtTokenProvider.getSubject(refreshToken);
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
+
+        RefreshToken savedToken = refreshTokenRepository.findById(member.getId())
+                .orElseThrow(() -> new IllegalArgumentException("저장된 refresh token이 없습니다."));
+
+        if (!savedToken.getRefreshToken().equals(refreshToken)) {
+            throw new IllegalArgumentException("refresh token이 일치하지 않습니다.");
+        }
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(username);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(username);
+        savedToken.update(newRefreshToken);
+        refreshTokenRepository.save(savedToken);
+
+        return new TokenResponseDTO(newAccessToken, newRefreshToken);
     }
 }
