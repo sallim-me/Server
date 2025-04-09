@@ -4,9 +4,10 @@ import lombok.*;
 
 @Builder
 public class CreateProductSellingRequest {
-    // Product type
+    // Product
     private String title;
     private String content;
+    // ProductSelling
     private String modelNumber;
     private String modelName;
     private String modelSpecification;
