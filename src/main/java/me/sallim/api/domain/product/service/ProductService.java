@@ -1,38 +1,56 @@
 package me.sallim.api.domain.product.service;
 
-import me.sallim.api.domain.product.dto.ProductCreateRequest;
-import me.sallim.api.domain.product.dto.ProductDetailResponse;
+import jakarta.transaction.Transactional;
+import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.product.dto.request.CreateProductSellingRequest;
+import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
+import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.Product;
+import me.sallim.api.domain.product.model.ProductSelling;
+import me.sallim.api.domain.product.repository.ProductBuyingRepository;
 import me.sallim.api.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import me.sallim.api.domain.product.repository.ProductSellingQueryRepository;
+import me.sallim.api.domain.product.repository.ProductSellingRepository;
+import me.sallim.api.global.annotation.LoginMember;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductBuyingRepository productBuyingRepository;
+    private final ProductSellingRepository productSellingRepository;
+    private final ProductSellingQueryRepository productSellingQueryRepository;
 
-    @Transactional
-    public Long createProduct(ProductCreateRequest request) {
-        Product product = Product.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .price(request.getPrice())
-                .build();
-        return productRepository.save(product).getId();
+    public List<ProductSellingSummaryResponse> getSellingSummaries() {
+        return productSellingQueryRepository.findAllProductSellingSummaries();
     }
 
-    @Transactional(readOnly = true)
-    public ProductDetailResponse getProductDetail(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
-        return new ProductDetailResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice()
-        );
+    @Transactional
+    public void createSellingProduct(Long memberId, CreateProductSellingRequest request) {
+        // 1. Product 저장
+        Product product = Product.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .isActive(true)
+                .postType(PostTypeEnum.SELLING)
+                .build();
+        productRepository.save(product);
+
+        // 2. ProductSelling 저장
+        ProductSelling selling = ProductSelling.builder()
+                .productId(product.getId()) // 연결
+                .memberId(product.getMemberId()) // 필요시 setter or param
+                .modelName(request.getModelName())
+                .modelNumber(request.getModelNumber())
+                .modelSpecification(request.getModelSpecification())
+                .price(request.getPrice())
+                .build();
+        productSellingRepository.save(selling);
     }
 }

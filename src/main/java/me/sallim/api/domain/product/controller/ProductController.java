@@ -1,12 +1,15 @@
 package me.sallim.api.domain.product.controller;
 
-import me.sallim.api.domain.product.dto.ProductCreateRequest;
-import me.sallim.api.domain.product.dto.ProductDetailResponse;
+import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.product.dto.request.CreateProductSellingRequest;
+import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
+import me.sallim.api.global.annotation.LoginMember;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/product")
@@ -15,15 +18,16 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @PostMapping
-    public ResponseEntity<Long> createProduct(@RequestBody ProductCreateRequest request) {
-        Long productId = productService.createProduct(request);
-        return ResponseEntity.ok(productId);
+    @GetMapping("/selling")
+    public ResponseEntity<List<ProductSellingSummaryResponse>> getSellingProducts() {
+        List<ProductSellingSummaryResponse> summaries = productService.getSellingSummaries();
+        return ResponseEntity.ok(summaries);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductDetailResponse> getProduct(@PathVariable Long id) {
-        ProductDetailResponse response = productService.getProductDetail(id);
-        return ResponseEntity.ok(response);
+    @PostMapping("/selling")
+    public ResponseEntity<Void> createSellingProduct(@LoginMember Member loginMember,
+                                                     @RequestBody CreateProductSellingRequest request) {
+        productService.createSellingProduct(loginMember.getId(), request);
+        return ResponseEntity.ok().build();
     }
 }
