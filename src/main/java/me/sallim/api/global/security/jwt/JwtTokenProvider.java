@@ -2,6 +2,7 @@ package me.sallim.api.global.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,19 +12,25 @@ import java.util.UUID;
 @Component
 public class JwtTokenProvider {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
 
-    private final long ACCESS_EXP = 1000L * 60 * 30;       // 30분
-    private final long REFRESH_EXP = 1000L * 60 * 60 * 24; // 24시간
+    public JwtTokenProvider(@Value("${spring.jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+    @Value("${spring.jwt.access-token-validity-in-seconds}")
+    private long accessTokenValidityInSeconds;
+
+    @Value("${spring.jwt.refresh-token-validity-in-seconds}")
+    private long refreshTokenValidityInSeconds;
 
     public String createAccessToken(String username) {
-        return createToken(username, ACCESS_EXP);
+        return createToken(username, accessTokenValidityInSeconds * 1000);
     }
 
-    public String createRefreshToken() {
-        return createToken(UUID.randomUUID().toString(), REFRESH_EXP);
+    public String createRefreshToken(String username) {
+        return createToken(username, refreshTokenValidityInSeconds * 1000);
     }
-
     private String createToken(String subject, long expiration) {
         Date now = new Date();
         return Jwts.builder()
@@ -50,5 +57,12 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public String resolveToken(String header) {
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        return null;
     }
 }
