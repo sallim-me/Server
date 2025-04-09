@@ -15,6 +15,9 @@ public class ProductPhoto {
     @Column(name = "product_photo_id")
     private Long id;
 
+    @Column(name = "member_id")
+    private Long memberId;
+
     @Column(name = "product_id")
     private Long productId;
 
