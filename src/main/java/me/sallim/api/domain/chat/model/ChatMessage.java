@@ -26,7 +26,13 @@ public class ChatMessage {
     @Column(name = "content", columnDefinition = "varchar(2048)")
     private String content;
 
-    // TODO: columnDefinition -> 어노테이션
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+    }
 }
