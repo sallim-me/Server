@@ -24,19 +24,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         String token = jwtTokenProvider.resolveToken(request.getHeader("Authorization"));
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            String username = jwtTokenProvider.getSubject(token);
+            Long memberId = Long.valueOf(jwtTokenProvider.getSubject(token));
 
-            Member member = memberRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다: " + username));
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다: " + memberId));
 
             CustomUserDetails userDetails = new CustomUserDetails(member);
 

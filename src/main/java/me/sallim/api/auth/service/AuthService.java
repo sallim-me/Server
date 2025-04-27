@@ -29,8 +29,8 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(member.getUsername());
-        String refreshToken = jwtTokenProvider.createRefreshToken(member.getUsername());
+        String accessToken = jwtTokenProvider.createAccessToken(member.getId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(member.getId());
 
         refreshTokenRepository.save(new RefreshToken(member.getId(), refreshToken));
 
@@ -49,8 +49,9 @@ public class AuthService {
             throw new IllegalArgumentException("유효하지 않은 refresh token입니다.");
         }
 
-        String username = jwtTokenProvider.getSubject(refreshToken);
-        Member member = memberRepository.findByUsername(username)
+        // memberId로 변경
+        Long memberId = Long.valueOf(jwtTokenProvider.getSubject(refreshToken));
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
 
         RefreshToken savedToken = refreshTokenRepository.findById(member.getId())
@@ -60,8 +61,8 @@ public class AuthService {
             throw new IllegalArgumentException("refresh token이 일치하지 않습니다.");
         }
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(username);
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(username);
+        String newAccessToken = jwtTokenProvider.createAccessToken(member.getId());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(member.getId());
         savedToken.update(newRefreshToken);
         refreshTokenRepository.save(savedToken);
 

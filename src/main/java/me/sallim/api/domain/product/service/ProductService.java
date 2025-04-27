@@ -1,20 +1,18 @@
 package me.sallim.api.domain.product.service;
 
 import jakarta.transaction.Transactional;
-import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.appliance.ApplianceType;
 import me.sallim.api.domain.product.dto.request.CreateProductSellingRequest;
 import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.Product;
 import me.sallim.api.domain.product.model.ProductSelling;
-import me.sallim.api.domain.product.repository.ProductBuyingRepository;
 import me.sallim.api.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.product.repository.ProductSellingQueryRepository;
 import me.sallim.api.domain.product.repository.ProductSellingRepository;
-import me.sallim.api.global.annotation.LoginMember;
+import me.sallim.api.domain.product_buying.repository.ProductBuyingRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -39,6 +37,7 @@ public class ProductService {
                 .content(request.getContent())
                 .isActive(true)
                 .postType(PostTypeEnum.SELLING)
+                .applianceType(request.getApplianceType())
                 .build();
         productRepository.save(product);
 

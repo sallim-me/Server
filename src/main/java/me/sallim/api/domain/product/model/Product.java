@@ -2,6 +2,7 @@ package me.sallim.api.domain.product.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.sallim.api.domain.appliance.ApplianceType;
 
 import java.time.LocalDateTime;
 
@@ -20,8 +21,9 @@ public class Product {
     @Column(name = "member_id")
     private Long memberId;
 
-    @Column(name = "appliance_id")
-    private Long appliance_id;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "appliance_type")
+    private ApplianceType applianceType;
 
     @Column(name = "title", length = 500)
     private String title;
@@ -47,5 +49,11 @@ public class Product {
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
         }
+    }
+
+    public void updateProductInfo(String title, String content, ApplianceType applianceType) {
+        this.title = title;
+        this.content = content;
+        this.applianceType = applianceType;
     }
 }
