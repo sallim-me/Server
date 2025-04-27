@@ -24,12 +24,12 @@ public class JwtTokenProvider {
     @Value("${spring.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenValidityInSeconds;
 
-    public String createAccessToken(String username) {
-        return createToken(username, accessTokenValidityInSeconds * 1000);
+    public String createAccessToken(Long memberId) {
+        return createToken(memberId.toString(), accessTokenValidityInSeconds * 1000);
     }
 
-    public String createRefreshToken(String username) {
-        return createToken(username, refreshTokenValidityInSeconds * 1000);
+    public String createRefreshToken(Long memberId) {
+        return createToken(memberId.toString(), refreshTokenValidityInSeconds * 1000);
     }
     private String createToken(String subject, long expiration) {
         Date now = new Date();

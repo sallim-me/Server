@@ -38,5 +38,7 @@ public class MemberService {
     @Transactional
     public void updateProfile(Member member, MemberUpdateRequestDTO request) {
         MemberConverter.updateMember(member, request, passwordEncoder);
+        memberRepository.save(member);
+        memberRepository.flush();
     }
 }
