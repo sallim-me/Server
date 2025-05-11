@@ -39,6 +39,10 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JSON 파싱을 위한 Jackson 연동// QueryDSL
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
 
+	// crawling
+	implementation 'org.seleniumhq.selenium:selenium-java:4.19.1'
+	implementation 'io.github.bonigarcia:webdrivermanager:5.8.0'
+
 	compileOnly 'org.projectlombok:lombok'
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
