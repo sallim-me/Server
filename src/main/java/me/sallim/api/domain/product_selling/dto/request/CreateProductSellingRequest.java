@@ -1,4 +1,4 @@
-package me.sallim.api.domain.product.dto.request;
+package me.sallim.api.domain.product_selling.dto.request;
 
 import lombok.*;
 import me.sallim.api.domain.appliance.ApplianceType;

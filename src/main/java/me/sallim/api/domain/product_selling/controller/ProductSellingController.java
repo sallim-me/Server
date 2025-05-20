@@ -1,12 +1,12 @@
-package me.sallim.api.domain.product.controller;
+package me.sallim.api.domain.product_selling.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import me.sallim.api.domain.member.model.Member;
-import me.sallim.api.domain.product.dto.request.CreateProductSellingRequest;
-import me.sallim.api.domain.product.dto.request.UpdateProductSellingRequest;
-import me.sallim.api.domain.product.dto.response.ProductSellingDetailResponse;
-import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
-import me.sallim.api.domain.product.service.ProductService;
+import me.sallim.api.domain.product_selling.dto.request.CreateProductSellingRequest;
+import me.sallim.api.domain.product_selling.dto.request.UpdateProductSellingRequest;
+import me.sallim.api.domain.product_selling.dto.response.ProductSellingDetailResponse;
+import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
+import me.sallim.api.domain.product_selling.service.ProductSellingService;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.global.annotation.LoginMember;
 import me.sallim.api.global.response.ApiResponse;
@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/product/selling")
 @RequiredArgsConstructor
-public class ProductController {
+public class ProductSellingController {
 
-    private final ProductService productService;
+    private final ProductSellingService productSellingService;
 
     @Operation(
             summary = "판매 글 작성",
@@ -58,11 +58,11 @@ public class ProductController {
         ```
         """
     )
-    @PostMapping("/selling")
+    @PostMapping
     public ResponseEntity<ApiResponse<ProductSellingDetailResponse>> createSellingProduct(
             @LoginMember Member loginMember,
             @RequestBody CreateProductSellingRequest request) {
-        ProductSellingDetailResponse detail = productService.createSellingProduct(loginMember, request);
+        ProductSellingDetailResponse detail = productSellingService.createSellingProduct(loginMember, request);
         return ResponseEntity.ok(ApiResponse.success(detail));
     }
 
@@ -106,9 +106,9 @@ public class ProductController {
         ```
         """
     )
-    @GetMapping("/selling/{productId}")
+    @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductSellingDetailResponse>> getProductSellingDetail(@PathVariable Long productId) {
-        ProductSellingDetailResponse detail = productService.getProductSellingDetail(productId);
+        ProductSellingDetailResponse detail = productSellingService.getProductSellingDetail(productId);
         return ResponseEntity.ok(ApiResponse.success(detail));
     }
 
@@ -144,12 +144,12 @@ public class ProductController {
         ```
         """
     )
-    @PatchMapping("/selling/{productId}")
+    @PatchMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductSellingDetailResponse>> updateSellingProduct(
             @LoginMember Member loginMember,
             @PathVariable Long productId,
             @RequestBody UpdateProductSellingRequest request) {
-        ProductSellingDetailResponse updated = productService.updateSellingProduct(loginMember, productId, request);
+        ProductSellingDetailResponse updated = productSellingService.updateSellingProduct(loginMember, productId, request);
         return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
@@ -157,17 +157,17 @@ public class ProductController {
             summary = "판매글 삭제",
             description = "본인이 작성한 판매글을 완전히 삭제합니다."
     )
-    @DeleteMapping("/selling/{productId}")
+    @DeleteMapping("/{productId}")
     public ResponseEntity<ApiResponse<Void>> deleteSellingProduct(
             @LoginMember Member loginMember,
             @PathVariable Long productId) {
-        productService.deleteSellingProduct(loginMember, productId);
+        productSellingService.deleteSellingProduct(loginMember, productId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @GetMapping("/selling")
+    @GetMapping
     public ResponseEntity<List<ProductSellingSummaryResponse>> getSellingProducts() {
-        List<ProductSellingSummaryResponse> summaries = productService.getSellingSummaries();
+        List<ProductSellingSummaryResponse> summaries = productSellingService.getSellingSummaries();
         return ResponseEntity.ok(summaries);
     }
 }

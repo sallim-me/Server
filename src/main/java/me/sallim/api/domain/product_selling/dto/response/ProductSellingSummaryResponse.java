@@ -1,4 +1,4 @@
-package me.sallim.api.domain.product.dto.response;
+package me.sallim.api.domain.product_selling.dto.response;
 
 import lombok.*;
 

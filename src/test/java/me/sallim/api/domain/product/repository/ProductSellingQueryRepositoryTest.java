@@ -2,8 +2,10 @@ package me.sallim.api.domain.product.repository;
 
 import me.sallim.api.config.QueryDslConfig;
 import me.sallim.api.domain.member.model.Member;
-import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
+import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.model.*;
+import me.sallim.api.domain.product_selling.model.ProductSelling;
+import me.sallim.api.domain.product_selling.repository.ProductSellingQueryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,9 @@
-package me.sallim.api.domain.product.dto.response;
+package me.sallim.api.domain.product_selling.dto.response;
 
 import lombok.Builder;
 import me.sallim.api.domain.appliance.ApplianceType;
 import me.sallim.api.domain.product.model.Product;
-import me.sallim.api.domain.product.model.ProductSelling;
+import me.sallim.api.domain.product_selling.model.ProductSelling;
 import me.sallim.api.domain.product_selling_answer.dto.response.ProductSellingAnswerResponse;
 import me.sallim.api.domain.product_selling_answer.model.ProductSellingAnswer;
 

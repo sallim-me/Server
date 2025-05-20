@@ -1,4 +1,4 @@
-package me.sallim.api.global.config;
+package me.sallim.api.config;
 
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;

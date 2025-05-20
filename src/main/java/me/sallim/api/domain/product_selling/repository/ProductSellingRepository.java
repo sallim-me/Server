@@ -1,7 +1,7 @@
-package me.sallim.api.domain.product.repository;
+package me.sallim.api.domain.product_selling.repository;
 
 import me.sallim.api.domain.product.model.Product;
-import me.sallim.api.domain.product.model.ProductSelling;
+import me.sallim.api.domain.product_selling.model.ProductSelling;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

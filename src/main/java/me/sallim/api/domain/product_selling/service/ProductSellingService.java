@@ -1,21 +1,20 @@
-package me.sallim.api.domain.product.service;
+package me.sallim.api.domain.product_selling.service;
 
 import me.sallim.api.domain.appliance.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
-import me.sallim.api.domain.product.dto.request.UpdateProductSellingRequest;
+import me.sallim.api.domain.product_selling.dto.request.UpdateProductSellingRequest;
 import org.springframework.transaction.annotation.Transactional;
 import me.sallim.api.domain.appliance_type_question.repository.ApplianceTypeQuestionRepository;
-import me.sallim.api.domain.product.dto.request.CreateProductSellingRequest;
-import me.sallim.api.domain.product.dto.response.ProductSellingDetailResponse;
-import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
+import me.sallim.api.domain.product_selling.dto.request.CreateProductSellingRequest;
+import me.sallim.api.domain.product_selling.dto.response.ProductSellingDetailResponse;
+import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.Product;
-import me.sallim.api.domain.product.model.ProductSelling;
+import me.sallim.api.domain.product_selling.model.ProductSelling;
 import me.sallim.api.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import me.sallim.api.domain.product.repository.ProductSellingQueryRepository;
-import me.sallim.api.domain.product.repository.ProductSellingRepository;
-import me.sallim.api.domain.product_buying.repository.ProductBuyingRepository;
+import me.sallim.api.domain.product_selling.repository.ProductSellingQueryRepository;
+import me.sallim.api.domain.product_selling.repository.ProductSellingRepository;
 import me.sallim.api.domain.product_selling_answer.model.ProductSellingAnswer;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceTypeQuestion;
 import me.sallim.api.domain.product_selling_answer.repository.ProductSellingAnswerRepository;
@@ -29,7 +28,7 @@ import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService {
+public class ProductSellingService {
 
     private final ProductRepository productRepository;
     private final ProductSellingRepository productSellingRepository;

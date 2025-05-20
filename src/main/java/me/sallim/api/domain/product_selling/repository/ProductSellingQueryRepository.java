@@ -1,8 +1,8 @@
-package me.sallim.api.domain.product.repository;
+package me.sallim.api.domain.product_selling.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
+import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.QProduct;
 import me.sallim.api.domain.product.model.QProductPhoto;

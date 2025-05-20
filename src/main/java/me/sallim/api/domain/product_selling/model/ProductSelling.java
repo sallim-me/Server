@@ -1,7 +1,8 @@
-package me.sallim.api.domain.product.model;
+package me.sallim.api.domain.product_selling.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.sallim.api.domain.product.model.Product;
 
 @Getter @Setter
 @NoArgsConstructor
