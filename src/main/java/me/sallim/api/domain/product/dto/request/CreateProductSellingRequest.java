@@ -3,6 +3,8 @@ package me.sallim.api.domain.product.dto.request;
 import lombok.*;
 import me.sallim.api.domain.appliance.ApplianceType;
 
+import java.util.List;
+
 
 @Getter
 @NoArgsConstructor
@@ -17,6 +19,9 @@ public class CreateProductSellingRequest {
     // ProductSelling
     private String modelNumber;
     private String modelName;
-    private String modelSpecification;
+    private String brand;
     private int price;
+    private int userPrice;
+
+    private List<ProductSellingAnswerRequest> answers; // 질문에 대한 사용자 답변
 }

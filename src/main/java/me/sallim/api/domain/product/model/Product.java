@@ -3,6 +3,7 @@ package me.sallim.api.domain.product.model;
 import jakarta.persistence.*;
 import lombok.*;
 import me.sallim.api.domain.appliance.ApplianceType;
+import me.sallim.api.domain.member.model.Member;
 
 import java.time.LocalDateTime;
 
@@ -18,8 +19,9 @@ public class Product {
     @Column(name = "product_id")
     private Long id;
 
-    @Column(name = "member_id")
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "appliance_type")
@@ -51,9 +53,10 @@ public class Product {
         }
     }
 
-    public void updateProductInfo(String title, String content, ApplianceType applianceType) {
+    public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;
         this.content = content;
         this.applianceType = applianceType;
+        this.isActive = isActive;
     }
 }

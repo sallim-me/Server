@@ -34,7 +34,7 @@ public class ProductSellingQueryRepository {
                         p.createdAt
                 ))
                 .from(p)
-                .join(ps).on(ps.productId.eq(p.id))
+                .join(ps).on(ps.product.id.eq(p.id))
                 .leftJoin(pp).on(pp.id.eq(p.productPhotoId))
                 .where(
                         p.isActive.eq(true),

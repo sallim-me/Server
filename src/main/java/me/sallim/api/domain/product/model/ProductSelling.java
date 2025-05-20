@@ -11,25 +11,35 @@ import lombok.*;
 @Table(name = "product_selling")
 public class ProductSelling {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_selling_id")
     private Long id;
 
-    @Column(name = "member_id")
-    private Long memberId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false, unique = true)
+    private Product product;
 
-    @Column(name = "product_id")
-    private Long productId;
-
-    @Column(name = "model_number")
+    @Column(name = "model_number", nullable = false)
     private String modelNumber;
 
-    @Column(name = "model_name")
+    @Column(name = "model_name", nullable = false)
     private String modelName;
 
-    @Column(name = "model_specification", columnDefinition = "varchar(2048)")
-    private String modelSpecification;
+    @Column(name = "brand", nullable = false)
+    private String brand;
 
-    @Column(name = "price")
+    @Column(name = "price", nullable = false)
     private int price;
+
+    @Column(name = "user_price", nullable = false)
+    private int userPrice;
+
+    public void updateSellingInfo(String modelNumber, String modelName, String brand, int price, int userPrice) {
+        this.modelNumber = modelNumber;
+        this.modelName = modelName;
+        this.brand = brand;
+        this.price = price;
+        this.userPrice = userPrice;
+    }
 }
