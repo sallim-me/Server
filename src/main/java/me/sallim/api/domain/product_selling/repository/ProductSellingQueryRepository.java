@@ -6,7 +6,7 @@ import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryRe
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.QProduct;
 import me.sallim.api.domain.product.model.QProductPhoto;
-import me.sallim.api.domain.product.model.QProductSelling;
+import me.sallim.api.domain.product_selling.model.QProductSelling;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
