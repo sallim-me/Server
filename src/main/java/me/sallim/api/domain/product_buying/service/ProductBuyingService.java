@@ -1,7 +1,6 @@
 package me.sallim.api.domain.product_buying.service;
 
 import lombok.RequiredArgsConstructor;
-import me.sallim.api.domain.appliance.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.Product;
@@ -13,8 +12,6 @@ import me.sallim.api.domain.product_buying.model.ProductBuying;
 import me.sallim.api.domain.product_buying.repository.ProductBuyingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static me.sallim.api.domain.product_buying.model.QProductBuying.productBuying;
 
 @Service
 @RequiredArgsConstructor

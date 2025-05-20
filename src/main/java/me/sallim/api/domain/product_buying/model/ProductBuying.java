@@ -2,9 +2,7 @@ package me.sallim.api.domain.product_buying.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.sallim.api.domain.appliance.ApplianceType;
 import me.sallim.api.domain.product.model.Product;
-import me.sallim.api.global.entity.BaseEntity;
 
 @Entity
 @Table(name = "product_buying")

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.sallim.api.domain.appliance.ApplianceType;
+import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 
 import java.util.List;
 

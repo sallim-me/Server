@@ -2,7 +2,7 @@ package me.sallim.api.domain.member.dto.response;
 
 
 import lombok.Builder;
-import me.sallim.api.domain.appliance.ApplianceType;
+import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.Product;
 

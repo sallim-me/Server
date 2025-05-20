@@ -2,11 +2,9 @@ package me.sallim.api.domain.product.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.sallim.api.domain.appliance.ApplianceType;
+import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.global.entity.BaseEntity;
-
-import java.time.LocalDateTime;
 
 @Getter @Setter
 @NoArgsConstructor

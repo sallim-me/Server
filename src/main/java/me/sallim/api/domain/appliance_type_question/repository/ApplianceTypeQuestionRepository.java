@@ -1,6 +1,6 @@
 package me.sallim.api.domain.appliance_type_question.repository;
 
-import me.sallim.api.domain.appliance.ApplianceType;
+import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceTypeQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
 

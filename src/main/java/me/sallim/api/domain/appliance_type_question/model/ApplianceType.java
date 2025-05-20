@@ -1,4 +1,4 @@
-package me.sallim.api.domain.appliance;
+package me.sallim.api.domain.appliance_type_question.model;
 
 public enum ApplianceType {
     REFRIGERATOR, // 냉장고
