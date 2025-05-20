@@ -3,6 +3,7 @@ package me.sallim.api.domain.appliance_type_question.model;
 import jakarta.persistence.*;
 import lombok.*;
 import me.sallim.api.domain.appliance.ApplianceType;
+import me.sallim.api.global.entity.BaseEntity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "appliance_type_question")
-public class ApplianceTypeQuestion {
+public class ApplianceTypeQuestion extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

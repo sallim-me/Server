@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import me.sallim.api.domain.appliance.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.global.entity.BaseEntity;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "product")
-public class Product {
+public class Product extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
@@ -42,16 +43,6 @@ public class Product {
 
     @Column(name = "product_photo_id")
     private Long productPhotoId;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-    }
 
     public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;

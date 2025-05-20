@@ -12,7 +12,7 @@ import me.sallim.api.global.entity.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class ProductBuying extends BaseEntity {
+public class ProductBuying {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
