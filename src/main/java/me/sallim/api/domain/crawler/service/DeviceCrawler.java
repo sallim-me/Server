@@ -1,12 +1,12 @@
 package me.sallim.api.domain.crawler.service;
 
-import me.sallim.api.domain.crawler.domain.Device;
 import me.sallim.api.domain.crawler.dto.CrawlingItem;
 import me.sallim.api.domain.crawler.parser.AirConditionerModelParser;
 import me.sallim.api.domain.crawler.parser.FridgeModelParser;
 import me.sallim.api.domain.crawler.parser.ModelParser;
 import me.sallim.api.domain.crawler.parser.WasherModelParser;
-import me.sallim.api.domain.crawler.repository.DeviceRepository;
+import me.sallim.api.domain.device.model.Device;
+import me.sallim.api.domain.device.repository.DeviceRepository;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
@@ -136,4 +136,3 @@ public class DeviceCrawler {
         return washerModelParser; // fallback
     }
 }
-

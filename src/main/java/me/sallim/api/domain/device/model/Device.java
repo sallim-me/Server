@@ -1,11 +1,13 @@
-package me.sallim.api.domain.crawler.domain;
+package me.sallim.api.domain.device.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,5 +25,6 @@ public class Device {
 
     @Column(name = "device_option")
     private String option;
+
     private String date;
 }

@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class DeviceService {
+public class CrawlingService {
     private final DeviceCrawler deviceCrawler;
 
-    public DeviceService(DeviceCrawler deviceCrawler) {
+    public CrawlingService(DeviceCrawler deviceCrawler) {
         this.deviceCrawler = deviceCrawler;
     }
 
