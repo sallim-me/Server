@@ -9,5 +9,6 @@ public record UpdateProductBuyingRequest(
         String content,
         int quantity,
         ApplianceType applianceType,
-        int price
+        int price,
+        boolean isActive
 ) {}

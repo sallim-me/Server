@@ -19,8 +19,8 @@ public class ProductBuying extends BaseEntity {
     @Column(name = "product_buying_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false,unique = true)
     private Product product;
 
     @Column(nullable = false)
