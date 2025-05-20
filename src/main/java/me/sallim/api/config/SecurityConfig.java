@@ -1,4 +1,4 @@
-package me.sallim.api.global.security;
+package me.sallim.api.config;
 
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.member.repository.MemberRepository;
