@@ -4,13 +4,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.member.model.Member;
 
+import me.sallim.api.domain.product.repository.ProductRepository;
 import me.sallim.api.domain.product_buying.dto.request.CreateProductBuyingRequest;
 import me.sallim.api.domain.product_buying.dto.request.UpdateProductBuyingRequest;
 import me.sallim.api.domain.product_buying.dto.response.ProductBuyingDetailResponse;
 import me.sallim.api.domain.product_buying.service.ProductBuyingService;
-import me.sallim.api.domain.product_buying_comment.dto.request.CreateProductBuyingCommentRequest;
-import me.sallim.api.domain.product_buying_comment.dto.response.ProductBuyingCommentResponse;
-import me.sallim.api.domain.product_buying_comment.service.ProductBuyingCommentService;
+import me.sallim.api.domain.product_comment.dto.request.CreateProductCommentRequest;
+import me.sallim.api.domain.product_comment.dto.response.ProductCommentResponse;
+import me.sallim.api.domain.product_comment.service.ProductCommentService;
 import me.sallim.api.global.annotation.LoginMember;
 import me.sallim.api.global.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +19,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static me.sallim.api.domain.product_buying.model.QProductBuying.productBuying;
+
 @RestController
-@RequestMapping("/product-buying")
+@RequestMapping("/product/buying")
 @RequiredArgsConstructor
 public class ProductBuyingController {
 
     private final ProductBuyingService productBuyingService;
-    private final ProductBuyingCommentService productBuyingCommentService;
+    private final ProductRepository productRepository;
+    private final ProductCommentService productCommentService;
 
     @Operation(summary = "구매 글 작성", description = """
         바이어 회원만 구매 글을 작성할 수 있습니다.
@@ -51,13 +55,13 @@ public class ProductBuyingController {
         특정 구매 글의 상세 내용을 조회합니다.
 
         ### Path Variable
-        - productBuyingId: 조회할 구매 글 ID
+        - productId: 조회할 글 ID
         """)
-    @GetMapping("/{productBuyingId}")
-    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> getProductBuying(@PathVariable Long productBuyingId) {
-        ProductBuyingDetailResponse detail = productBuyingService.getProductBuyingDetail(productBuyingId);
-        return ResponseEntity.ok(ApiResponse.success(detail));
+    @GetMapping("/{productId}")
+    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> getProductBuying(@PathVariable Long productId) {
+        return ResponseEntity.ok(ApiResponse.success(productBuyingService.getProductBuyingDetail(productId)));
     }
+
 
     @Operation(summary = "구매 글 수정", description = """
         구매 글의 제목, 내용, 수량, 가격, 가전 타입을 수정합니다.
@@ -73,69 +77,25 @@ public class ProductBuyingController {
         }
         ```
         """)
-    @PatchMapping("/{productBuyingId}")
-    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> updateProductBuying(@LoginMember Member loginMember,
-                                                                                        @PathVariable Long productBuyingId,
-                                                                                        @RequestBody UpdateProductBuyingRequest request) {
-        ProductBuyingDetailResponse updatedDetail = productBuyingService.updateProductBuying(loginMember, productBuyingId, request);
-        return ResponseEntity.ok(ApiResponse.success(updatedDetail));
+    @PatchMapping("/{productId}")
+    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> updateProductBuying(
+            @LoginMember Member loginMember,
+            @PathVariable Long productId,
+            @RequestBody UpdateProductBuyingRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(productBuyingService.updateProductBuying(loginMember, productId, request)));
     }
 
     @Operation(summary = "구매 글 삭제", description = """
         특정 구매 글을 삭제합니다.
 
         ### Path Variable
-        - productBuyingId: 삭제할 구매 글 ID (작성자 본인만 삭제 가능)
+        - productId: 삭제할 글 ID (작성자 본인만 삭제 가능)
         """)
-    @DeleteMapping("/{productBuyingId}")
-    public ResponseEntity<ApiResponse<String>> deleteProductBuying(@LoginMember Member loginMember,
-                                                                   @PathVariable Long productBuyingId) {
-        productBuyingService.deleteProductBuying(loginMember, productBuyingId);
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<ApiResponse<String>> deleteProductBuying(
+            @LoginMember Member loginMember,
+            @PathVariable Long productId) {
+        productBuyingService.deleteProductBuying(loginMember, productId);
         return ResponseEntity.ok(ApiResponse.success("삭제 완료"));
-    }
-
-    // =========================== 구매 글 댓글 ===========================
-
-    @Operation(summary = "구매 글에 댓글 작성", description = """
-        특정 구매 글에 댓글을 작성합니다.
-
-        ### 요청 예시:
-        ```json
-        {
-          "content": "구매 조건 협의 가능합니다."
-        }
-        ```
-        """)
-    @PostMapping("/{productBuyingId}/comments")
-    public ResponseEntity<ApiResponse<String>> createComment(@LoginMember Member loginMember,
-                                                             @PathVariable Long productBuyingId,
-                                                             @RequestBody CreateProductBuyingCommentRequest request) {
-        productBuyingCommentService.createComment(loginMember, productBuyingId, request);
-        return ResponseEntity.ok(ApiResponse.success("댓글 작성 완료"));
-    }
-
-    @Operation(summary = "구매 글 댓글 조회", description = """
-        특정 구매 글에 달린 모든 댓글을 조회합니다.
-
-        ### Path Variable
-        - productBuyingId: 조회할 구매 글 ID
-        """)
-    @GetMapping("/{productBuyingId}/comments")
-    public ResponseEntity<ApiResponse<List<ProductBuyingCommentResponse>>> getComments(@PathVariable Long productBuyingId) {
-        List<ProductBuyingCommentResponse> comments = productBuyingCommentService.getComments(productBuyingId);
-        return ResponseEntity.ok(ApiResponse.success(comments));
-    }
-
-    @Operation(summary = "구매 글 댓글 삭제", description = """
-        특정 댓글을 삭제합니다.
-
-        ### Path Variable
-        - commentId: 삭제할 댓글 ID (작성자 본인만 삭제 가능)
-        """)
-    @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<ApiResponse<String>> deleteComment(@LoginMember Member loginMember,
-                                                             @PathVariable Long commentId) {
-        productBuyingCommentService.deleteComment(loginMember, commentId);
-        return ResponseEntity.ok(ApiResponse.success("댓글 삭제 완료"));
     }
 }

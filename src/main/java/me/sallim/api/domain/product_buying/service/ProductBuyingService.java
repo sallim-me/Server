@@ -1,7 +1,6 @@
 package me.sallim.api.domain.product_buying.service;
 
 import lombok.RequiredArgsConstructor;
-import me.sallim.api.domain.appliance.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.Product;
@@ -32,7 +31,7 @@ public class ProductBuyingService {
 
         // Product 저장
         Product product = Product.builder()
-                .memberId(loginMember.getId())
+                .member(loginMember)
                 .applianceType(request.applianceType())
                 .title(request.title())
                 .content(request.content())
@@ -53,27 +52,28 @@ public class ProductBuyingService {
     }
 
     @Transactional(readOnly = true)
-    public ProductBuyingDetailResponse getProductBuyingDetail(Long productBuyingId) {
-        ProductBuying productBuying = productBuyingRepository.findById(productBuyingId)
+    public ProductBuyingDetailResponse getProductBuyingDetail(Long productId) {
+        ProductBuying productBuying = productBuyingRepository.findByProductId(productId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 글을 찾을 수 없습니다."));
         return ProductBuyingDetailResponse.from(productBuying);
     }
 
     @Transactional
-    public void deleteProductBuying(Member loginMember, Long productBuyingId) {
-        ProductBuying productBuying = productBuyingRepository.findById(productBuyingId)
+    public void deleteProductBuying(Member loginMember, Long productId) {
+        ProductBuying productBuying = productBuyingRepository.findByProductId(productId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 글을 찾을 수 없습니다."));
-        if (!productBuying.getProduct().getMemberId().equals(loginMember.getId())) {
+        if (!productBuying.getProduct().getMember().getId().equals(loginMember.getId())) {
             throw new IllegalArgumentException("본인이 작성한 글만 삭제할 수 있습니다.");
         }
         productBuyingRepository.delete(productBuying);
+        productRepository.delete(productBuying.getProduct());
     }
 
     @Transactional
-    public ProductBuyingDetailResponse updateProductBuying(Member loginMember, Long productBuyingId, UpdateProductBuyingRequest request) {
-        ProductBuying productBuying = productBuyingRepository.findById(productBuyingId)
+    public ProductBuyingDetailResponse updateProductBuying(Member loginMember, Long productId, UpdateProductBuyingRequest request) {
+        ProductBuying productBuying = productBuyingRepository.findByProductId(productId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 글을 찾을 수 없습니다."));
-        if (!productBuying.getProduct().getMemberId().equals(loginMember.getId())) {
+        if (!productBuying.getProduct().getMember().getId().equals(loginMember.getId())) {
             throw new IllegalArgumentException("본인이 작성한 글만 수정할 수 있습니다.");
         }
         productBuying.update(
@@ -83,7 +83,8 @@ public class ProductBuyingService {
         productBuying.getProduct().updateProductInfo(
                 request.title(),
                 request.content(),
-                request.applianceType()
+                request.applianceType(),
+                request.isActive()
         );
 
         return ProductBuyingDetailResponse.from(productBuying);

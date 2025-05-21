@@ -1,11 +1,8 @@
 package me.sallim.api.domain.crawler.controller;
 
 import me.sallim.api.domain.crawler.dto.CrawlingItem;
-import me.sallim.api.domain.crawler.service.DeviceService;
-import org.springframework.context.annotation.Profile;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import me.sallim.api.domain.crawler.service.CrawlingService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -14,10 +11,10 @@ import java.util.List;
 @RequestMapping("/crawler")
 public class CrawlController {
 
-    private final DeviceService deviceService;
+    private final CrawlingService crawlingService;
 
-    public CrawlController(DeviceService deviceService) {
-        this.deviceService = deviceService;
+    public CrawlController(CrawlingService crawlingService) {
+        this.crawlingService = crawlingService;
     }
 
     @PostMapping("/run")
@@ -31,7 +28,7 @@ public class CrawlController {
                 new CrawlingItem("LG", "에어컨", "https://prod.danawa.com/list/?cate=1022644", 35)
         );
 
-        deviceService.crawlAll(items);
+        crawlingService.crawlAll(items);
         return "크롤링 완료";
     }
 }

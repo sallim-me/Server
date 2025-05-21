@@ -2,9 +2,9 @@ package me.sallim.api.domain.product.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.sallim.api.domain.appliance.ApplianceType;
-
-import java.time.LocalDateTime;
+import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
+import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.global.entity.BaseEntity;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -12,14 +12,15 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "product")
-public class Product {
+public class Product extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long id;
 
-    @Column(name = "member_id")
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "appliance_type")
@@ -41,19 +42,10 @@ public class Product {
     @Column(name = "product_photo_id")
     private Long productPhotoId;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-    }
-
-    public void updateProductInfo(String title, String content, ApplianceType applianceType) {
+    public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;
         this.content = content;
         this.applianceType = applianceType;
+        this.isActive = isActive;
     }
 }

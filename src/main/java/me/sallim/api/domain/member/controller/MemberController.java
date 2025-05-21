@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.member.converter.MemberConverter;
 import me.sallim.api.domain.member.dto.request.MemberJoinRequestDTO;
 import me.sallim.api.domain.member.dto.request.MemberUpdateRequestDTO;
+import me.sallim.api.domain.member.dto.response.MemberInfoResponseDTO;
+import me.sallim.api.domain.member.dto.response.MemberPostSummaryResponse;
 import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.member.repository.MemberRepository;
 import me.sallim.api.domain.member.service.MemberService;
@@ -12,6 +14,8 @@ import me.sallim.api.global.annotation.LoginMember;
 import me.sallim.api.global.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/member")
@@ -91,5 +95,69 @@ public class MemberController {
                                            @RequestBody MemberUpdateRequestDTO request) {
         memberService.updateProfile(member, request);
         return ResponseEntity.ok(ApiResponse.success("회원 정보 수정 완료"));
+    }
+
+    @Operation(
+            summary = "내 정보 조회",
+            description = """
+        로그인한 사용자의 프로필 정보를 반환합니다.  
+        서버는 헤더의 로그인 토큰을 통해 사용자를 식별합니다.
+
+        ### 응답 예시:
+        ```json
+        {
+          "status": 200,
+          "code": "SUCCESS",
+          "message": "요청이 성공했습니다.",
+          "data": {
+            "username": "minjung123",
+            "name": "김민정",
+            "nickname": "민짱",
+            "isBuyer": true
+          }
+        }
+        ```
+        """
+    )
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<MemberInfoResponseDTO>> getMyInfo(@LoginMember Member member) {
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMyInfo(member)));
+    }
+
+    @Operation(
+            summary = "내 글 전체 조회",
+            description = """
+        로그인한 사용자가 작성한 모든 글(판매글, 구매글)을 리스트로 반환합니다.
+        각 글에는 제목, 글 종류(BUYING/SELLING), 작성일, 활성 상태 등이 포함됩니다.
+
+        ### 응답 예시:
+        ```json
+        {
+          "status": 200,
+          "code": "SUCCESS",
+          "message": "요청이 성공했습니다.",
+          "data": [
+            {
+              "productId": 12,
+              "title": "삼성 냉장고 팝니다",
+              "postType": "SELLING",
+              "isActive": true,
+              "createdAt": "2024-05-01T14:30:00"
+            },
+            {
+              "productId": 7,
+              "title": "세탁기 10대 구매 희망",
+              "postType": "BUYING",
+              "isActive": false,
+              "createdAt": "2024-04-28T11:10:00"
+            }
+          ]
+        }
+        ```
+        """
+    )
+    @GetMapping("/me/posts")
+    public ResponseEntity<ApiResponse<List<MemberPostSummaryResponse>>> getMyPosts(@LoginMember Member member) {
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMyPosts(member)));
     }
 }
