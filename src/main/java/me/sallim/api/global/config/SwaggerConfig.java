@@ -6,7 +6,12 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 @OpenAPIDefinition(
@@ -20,4 +25,17 @@ import org.springframework.context.annotation.Configuration;
         bearerFormat = "JWT"
 )
 public class SwaggerConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        Server localServer = new Server()
+                .url("http://localhost:8080")
+                .description("Local server");
+
+        Server devServer = new Server()
+                .url("https://dev-back.sallim.me")
+                .description("Dev server");
+
+        return new OpenAPI().servers(List.of(devServer, localServer));
+    }
 }
