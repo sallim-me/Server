@@ -2,6 +2,7 @@ package me.sallim.api.domain.crawler.controller;
 
 import me.sallim.api.domain.crawler.dto.CrawlingItem;
 import me.sallim.api.domain.crawler.service.CrawlingService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
