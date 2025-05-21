@@ -2,12 +2,14 @@ package me.sallim.api.domain.crawler.controller;
 
 import me.sallim.api.domain.crawler.dto.CrawlingItem;
 import me.sallim.api.domain.crawler.service.DeviceService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Profile("crawler")
 @RestController
 @RequestMapping("/crawler")
 public class CrawlController {
