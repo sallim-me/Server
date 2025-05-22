@@ -2,7 +2,11 @@ package me.sallim.api.domain.member.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.sallim.api.domain.product.model.Product;
 import me.sallim.api.global.entity.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "members")
@@ -31,6 +35,10 @@ public class Member extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isBuyer; // 바이어 여부
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<Product> products = new ArrayList<>();
 
     public void updatePassword(String newPassword) {
         this.password = newPassword;

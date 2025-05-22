@@ -1,8 +1,11 @@
 package me.sallim.api.domain.product.repository;
 
 import me.sallim.api.config.QueryDslConfig;
-import me.sallim.api.domain.product.dto.response.ProductSellingSummaryResponse;
+import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.model.*;
+import me.sallim.api.domain.product_selling.model.ProductSelling;
+import me.sallim.api.domain.product_selling.repository.ProductSellingQueryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +32,18 @@ class ProductSellingQueryRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        Member member = Member.builder()
+                .username("test_user")
+                .password("password")
+                .nickname("테스터")
+                .name("홍길동")
+                .isBuyer(false)
+                .build();
+        entityManager.persist(member);
+
         // Create and persist Product
         Product product = Product.builder()
+                .member(member)
                 .title("Test Product")
                 .content("Test Content")
                 .isActive(true)
@@ -41,9 +54,12 @@ class ProductSellingQueryRepositoryTest {
 
         // Create and persist ProductSelling
         ProductSelling productSelling = ProductSelling.builder()
-                .productId(product.getId())
+                .product(product)
+                .modelNumber("XYZ123")
                 .modelName("Test Model")
+                .brand("삼성")
                 .price(1000)
+                .userPrice(950)
                 .build();
         entityManager.persist(productSelling);
 
