@@ -77,6 +77,26 @@ public class SecurityConfig {
         return source;
     }
 
+    private String[] getPermittedPaths() {
+        List<String> paths = new ArrayList<>(Arrays.asList(
+                "/crawler/**",
+                "/auth/**",
+                "/member/profile",
+                "/health-check"
+        ));
+
+        if ("dev".equals(activeProfile)) {
+            paths.addAll(Arrays.asList(
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+            ));
+        }
+        return paths.toArray(new String[0]);
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -87,16 +107,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/crawler/**",
-                                "/auth/**",
-                                "/member/profile",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
+                        .requestMatchers(getPermittedPaths()).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
