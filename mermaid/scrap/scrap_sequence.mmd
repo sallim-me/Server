@@ -1,0 +1,68 @@
+sequenceDiagram
+    actor User
+    participant FE as Frontend
+    participant SC as ScrapController
+    participant SS as ScrapService
+    participant SR as ScrapRepository
+    participant MR as MemberRepository
+    participant PR as ProductRepository
+    participant DB as Database
+
+%% Create Scrap
+    User->>FE: Click "Scrap" button on product
+    FE->>SC: POST /api/scraps (productId, memo)
+    SC->>SS: createScrap(memberId, requestDto)
+    SS->>MR: findById(memberId)
+    MR-->>SS: member
+    SS->>PR: findById(productId)
+    PR-->>SS: product
+    SS->>SR: save(new Scrap)
+    SR->>DB: INSERT INTO scraps
+    DB-->>SR: result
+    SR-->>SS: saved scrap
+    SS-->>SC: ScrapResponseDto
+    SC-->>FE: 201 Created + scrap data
+    FE-->>User: Show "Scrapped" indicator
+
+%% Get Scraps
+    User->>FE: Navigate to "My Scraps"
+    FE->>SC: GET /api/scraps?page=0&size=10
+    SC->>SS: getScrapsByMemberId(memberId, pageable)
+    SS->>SR: findByMemberId(memberId, pageable)
+    SR->>DB: SELECT * FROM scraps WHERE member_id = ?
+    DB-->>SR: scraps
+    SR-->>SS: Page<Scrap>
+    SS-->>SC: ScrapListResponseDto
+    SC-->>FE: 200 OK + scraps list
+    FE-->>User: Display scrapped products
+
+%% Delete Scrap
+    User->>FE: Click "Unsave" on a saved product
+    FE->>SC: DELETE /api/scraps/{scrapId}
+    SC->>SS: deleteScrap(scrapId, memberId)
+    SS->>SR: findById(scrapId)
+    SR-->>SS: scrap
+    SS->>SS: verify member owns scrap
+    SS->>SR: delete(scrap)
+    SR->>DB: UPDATE scraps SET deleted_at = NOW()
+    DB-->>SR: result
+    SR-->>SS: success
+    SS-->>SC: success
+    SC-->>FE: 204 No Content
+    FE-->>User: Update UI (remove scrap)
+
+%% Update Scrap Memo
+    User->>FE: Edit memo on scrapped item
+    FE->>SC: PATCH /api/scraps/{scrapId}/memo
+    SC->>SS: updateScrapMemo(scrapId, memberId, memo)
+    SS->>SR: findById(scrapId)
+    SR-->>SS: scrap
+    SS->>SS: verify member owns scrap
+    SS->>SR: save(updated scrap)
+    SR->>DB: UPDATE scraps SET memo = ?, updated_at = NOW()
+    DB-->>SR: result
+    SR-->>SS: updated scrap
+    SS-->>SC: ScrapResponseDto
+    SC-->>FE: 200 OK + updated scrap
+    FE-->>User: Show updated memo
+
