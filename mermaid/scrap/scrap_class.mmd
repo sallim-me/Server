@@ -1,0 +1,92 @@
+classDiagram
+    %% Entity Classes
+    class Scrap {
+        Long id
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+        LocalDateTime deletedAt
+        Member member
+        Product product
+        String memo
+        +create()
+        +delete()
+        +updateMemo()
+    }
+
+    class Member {
+        Long id
+        String username
+        String password
+        String nickname
+        String name
+        Boolean isBuyer
+        List~Product~ products
+        List~Scrap~ scraps
+    }
+
+    class Product {
+        Long id
+        Member member
+        ApplianceType applianceType
+        String title
+        String content
+        Boolean isActive
+        PostTypeEnum postType
+        Long productPhotoId
+        List~Scrap~ scraps
+    }
+
+    %% DTOs
+    class ScrapRequestDto {
+        Long productId
+        String memo
+    }
+
+    class ScrapResponseDto {
+        Long id
+        Long memberId
+        String memberNickname
+        Long productId
+        String productTitle
+        String memo
+        LocalDateTime createdAt
+    }
+
+    class ScrapListResponseDto {
+        List~ScrapResponseDto~ scraps
+        int totalPages
+        long totalElements
+    }
+
+    %% Controller, Service, Repository
+    class ScrapController {
+        ScrapService scrapService
+        +createScrap()
+        +getScrapsByMember()
+        +deleteScrap()
+        +updateScrapMemo()
+    }
+
+    class ScrapService {
+        ScrapRepository scrapRepository
+        MemberRepository memberRepository
+        ProductRepository productRepository
+        +createScrap()
+        +getScrapsByMemberId()
+        +deleteScrap()
+        +updateScrapMemo()
+    }
+
+    class ScrapRepository {
+        +findByMemberId()
+        +findByMemberIdAndProductId()
+        +countByProductId()
+    }
+
+    %% Relationships
+    Member "1" -- "0..*" Scrap : has
+    Product "1" -- "0..*" Scrap : referenced by
+    ScrapController --> ScrapService : uses
+    ScrapService --> ScrapRepository : uses
+    ScrapService --> MemberRepository : uses
+    ScrapService --> ProductRepository : uses
