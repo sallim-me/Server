@@ -82,6 +82,7 @@ public class SecurityConfig {
                 "/crawler/**",
                 "/auth/**",
                 "/member/profile",
+                "/product/all",
                 "/health-check"
         ));
 
