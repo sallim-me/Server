@@ -63,12 +63,13 @@ public class ScrapService {
         Scrap scrap = scrapRepository.findById(scrapId)
                 .orElseThrow(() -> new EntityNotFoundException("Scrap not found with id: " + scrapId));
 
-        // Verify the scrap belongs to the member
+        // 스크랩이 해당 회원의 것인지 확인
         if (!scrap.getMember().getId().equals(memberId)) {
             throw new IllegalStateException("Scrap does not belong to this member");
         }
 
-        scrap.delete();
+        // 물리적 삭제 (데이터베이스에서 실제로 레코드 삭제)
+        scrapRepository.delete(scrap);
     }
 
     @Transactional
@@ -76,7 +77,7 @@ public class ScrapService {
         Scrap scrap = scrapRepository.findById(scrapId)
                 .orElseThrow(() -> new EntityNotFoundException("Scrap not found with id: " + scrapId));
 
-        // Verify the scrap belongs to the member
+        // 스크랩이 해당 회원의 것인지 확인
         if (!scrap.getMember().getId().equals(memberId)) {
             throw new IllegalStateException("Scrap does not belong to this member");
         }

@@ -15,6 +15,6 @@ public interface ScrapRepository extends JpaRepository<Scrap, Long> {
 
     Optional<Scrap> findByMemberIdAndProductId(Long memberId, Long productId);
 
-    @Query("SELECT COUNT(s) FROM Scrap s WHERE s.product.id = :productId AND s.deletedAt IS NULL")
+    @Query("SELECT COUNT(s) FROM Scrap s WHERE s.product.id = :productId")
     long countByProductId(@Param("productId") Long productId);
 }
