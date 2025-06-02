@@ -38,5 +38,16 @@ public class ChatRoomParticipant {
         if (this.joinedAt == null) {
             this.joinedAt = LocalDateTime.now();
         }
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    public void updateLastReadMessage(Long messageId) {
+        this.lastReadChatMessageId = messageId;
     }
 }
