@@ -2,6 +2,7 @@ package me.sallim.api.domain.product.repository;
 
 import me.sallim.api.config.QueryDslConfig;
 import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.product_photo.model.ProductPhoto;
 import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.model.*;
 import me.sallim.api.domain.product_selling.model.ProductSelling;
@@ -65,8 +66,11 @@ class ProductSellingQueryRepositoryTest {
 
         // Create and persist ProductPhoto
         ProductPhoto productPhoto = ProductPhoto.builder()
-                .productId(product.getId())
-                .url("https://example.com/test.jpg")
+                .product(product)
+                .fileName("test.jpg")
+                .fileUrl("https://example.com/test.jpg")
+                .contentType("image/jpeg")
+                .fileSize(1024L)
                 .build();
         entityManager.persist(productPhoto);
 
@@ -93,3 +97,4 @@ class ProductSellingQueryRepositoryTest {
         assertThat(response.getThumbnailUrl()).isEqualTo("https://example.com/test.jpg");
     }
 }
+
