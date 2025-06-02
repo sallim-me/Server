@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.member.converter.MemberConverter;
 import me.sallim.api.domain.member.dto.request.MemberJoinRequestDTO;
 import me.sallim.api.domain.member.dto.request.MemberUpdateRequestDTO;
+import me.sallim.api.domain.member.dto.request.UpdateFcmTokenRequest;
 import me.sallim.api.domain.member.dto.response.MemberInfoResponseDTO;
 import me.sallim.api.domain.member.dto.response.MemberPostSummaryResponse;
 import me.sallim.api.domain.member.model.Member;
@@ -159,5 +160,14 @@ public class MemberController {
     @GetMapping("/me/posts")
     public ResponseEntity<ApiResponse<List<MemberPostSummaryResponse>>> getMyPosts(@LoginMember Member member) {
         return ResponseEntity.ok(ApiResponse.success(memberService.getMyPosts(member)));
+    }
+
+    @PutMapping("/fcm-token")
+    @Operation(summary = "FCM 토큰 업데이트")
+    public ResponseEntity<ApiResponse<Void>> updateFcmToken(
+            @LoginMember Member member,
+            @RequestBody UpdateFcmTokenRequest request) {
+        memberService.updateFcmToken(member.getId(), request.getFcmToken());
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
