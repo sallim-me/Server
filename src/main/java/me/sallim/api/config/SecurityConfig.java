@@ -63,9 +63,9 @@ public class SecurityConfig {
             origins.addAll(Arrays.asList(allowedOrigins.split(","))); // Additional allowed origins
             configuration.setAllowedOrigins(origins);
         }
-        if ("prod".equals(activeProfile)) {
-            configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-        }
+
+        // use the configured allowed origins in .env
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
