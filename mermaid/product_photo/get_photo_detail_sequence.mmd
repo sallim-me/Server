@@ -1,0 +1,29 @@
+sequenceDiagram
+    title 상품 사진 상세 조회 프로세스
+
+    actor Client
+    participant ProductPhotoController
+    participant ProductPhotoService
+    participant ProductRepository
+    participant ProductPhotoRepository
+    participant Database
+
+    Client->>ProductPhotoController: GET /api/v1/products/{productId}/photos/{photoId}
+
+    ProductPhotoController->>ProductPhotoService: getPhotoById(productId, photoId)
+
+    ProductPhotoService->>ProductRepository: findById(productId)
+    ProductRepository->>Database: 상품 조회 쿼리
+    Database-->>ProductRepository: 상품 데이터 반환
+    ProductRepository-->>ProductPhotoService: Product 객체 반환
+
+    ProductPhotoService->>ProductPhotoRepository: findByProductAndId(product, photoId)
+    ProductPhotoRepository->>Database: 특정 사진 조회 쿼리
+    Database-->>ProductPhotoRepository: 사진 데이터 반환
+    ProductPhotoRepository-->>ProductPhotoService: ProductPhoto 객체 반환
+
+    Note over ProductPhotoService: ProductPhotoResponse 변환
+
+    ProductPhotoService-->>ProductPhotoController: ProductPhotoResponse 반환
+    ProductPhotoController-->>Client: 200 OK 응답 + ProductPhotoResponse JSON
+
