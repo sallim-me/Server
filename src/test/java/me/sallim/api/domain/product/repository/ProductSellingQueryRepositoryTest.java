@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import jakarta.persistence.EntityManager;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +47,6 @@ class ProductSellingQueryRepositoryTest {
                 .content("Test Content")
                 .isActive(true)
                 .postType(PostTypeEnum.SELLING)
-                .createdAt(LocalDateTime.now())
                 .build();
         entityManager.persist(product);
 

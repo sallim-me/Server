@@ -6,6 +6,7 @@ import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.chat.dto.ChatMessageDTO;
 import me.sallim.api.domain.member.repository.MemberRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@ConditionalOnProperty(name = "spring.firebase.enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class ChatMessageListener {
 

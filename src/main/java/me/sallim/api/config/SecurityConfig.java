@@ -77,13 +77,12 @@ public class SecurityConfig {
         return source;
     }
 
-    private String[] getPermittedPaths() {
-        List<String> paths = new ArrayList<>(Arrays.asList(
+    private String[] getPermittedPaths() {        List<String> paths = new ArrayList<>(Arrays.asList(
                 "/crawler/**",
                 "/auth/**",
                 "/member/profile",
                 "/health-check",
-                "/ws-chat/**"  // WebSocket endpoint
+                "/ws-chat/**",  // WebSocket endpoint
                 "/product/all",
                 "/health-check"
         ));
