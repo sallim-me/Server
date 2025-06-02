@@ -82,13 +82,15 @@ public class SecurityConfig {
                 "/crawler/**",
                 "/auth/**",
                 "/member/profile",
-                "/health-check"
+                "/health-check",
+                "/ws-chat/**"  // WebSocket endpoint
         ));
 
         if ("dev".equals(activeProfile)) {
             paths.addAll(Arrays.asList(
                     "/swagger-ui/**",
                     "/swagger-ui.html",
+                    "/v3/api-docs.yaml",
                     "/v3/api-docs/**",
                     "/swagger-resources/**",
                     "/webjars/**"
