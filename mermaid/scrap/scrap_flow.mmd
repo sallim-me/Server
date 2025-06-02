@@ -1,0 +1,19 @@
+flowchart TD
+    A[User] --> B{Already Scrapped?}
+    B -->|Yes| C[Unsave Product]
+    B -->|No| D[Save Product]
+
+    D --> E[Add to Scrap Collection]
+    D --> F[Optional: Add Memo]
+
+    C --> G[Remove from Scrap Collection]
+
+    E --> H[View Saved Products]
+    F --> H
+
+    H --> I{Actions}
+    I --> J[Filter by ApplianceType]
+    I --> K[Sort by Date]
+    I --> L[Delete Scrap]
+    I --> M[Edit Memo]
+    I --> N[View Product Details]

@@ -84,6 +84,8 @@ public class SecurityConfig {
                 "/member/profile",
                 "/health-check",
                 "/ws-chat/**"  // WebSocket endpoint
+                "/product/all",
+                "/health-check"
         ));
 
         if ("dev".equals(activeProfile)) {
