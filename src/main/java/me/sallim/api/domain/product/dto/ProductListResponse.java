@@ -1,15 +1,13 @@
 package me.sallim.api.domain.product.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,6 +20,7 @@ public class ProductListResponse {
     private String priceOrQuantity; // 현재는 빈 문자열 (Product 테이블에 없음)
     private String description;
     private Boolean isScraped;
+    private Boolean isActive;
     private Boolean isAuthor;
     private LocalDateTime createdAt;
     private Long memberId; // 작성자 ID (내부적으로만 사용)
@@ -30,7 +29,7 @@ public class ProductListResponse {
     public ProductListResponse(Long id, String title, PostTypeEnum tradeType, 
                              ApplianceType category, String modelName, 
                              String priceOrQuantity, String description, 
-                             LocalDateTime createdAt, Long memberId) {
+                             LocalDateTime createdAt, Long memberId, Boolean isActive) {
         this.id = id;
         this.title = title;
         this.tradeType = tradeType;
@@ -43,17 +42,6 @@ public class ProductListResponse {
         // isScraped와 isAuthor는 나중에 설정
         this.isScraped = false;
         this.isAuthor = false;
-    }
-    
-    public void setIsScraped(Boolean isScraped) {
-        this.isScraped = isScraped;
-    }
-    
-    public void setIsAuthor(Boolean isAuthor) {
-        this.isAuthor = isAuthor;
-    }
-    
-    public Long getMemberId() {
-        return memberId;
+        this.isActive = isActive; // 기본값으로 true 설정
     }
 }

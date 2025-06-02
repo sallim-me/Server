@@ -30,10 +30,11 @@ public class ProductQueryRepository {
                         Expressions.constant(""), // priceOrQuantity도 product 테이블에 없으므로 빈 문자열
                         product.content,
                         product.createdAt,
-                        product.member.id
+                        product.member.id,
+                        product.isActive
                 ))
                 .from(product)
-                .where(product.isActive.isTrue())
+//                .where(product.isActive.isTrue())
                 .orderBy(product.createdAt.desc())
                 .fetch();
     }
