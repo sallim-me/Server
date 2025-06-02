@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product.model.QProduct;
-import me.sallim.api.domain.product.model.QProductPhoto;
+import me.sallim.api.domain.product_photo.model.QProductPhoto;
 import me.sallim.api.domain.product_selling.model.QProductSelling;
 import org.springframework.stereotype.Repository;
 
@@ -30,7 +30,7 @@ public class ProductSellingQueryRepository {
                         p.title,
                         ps.modelName,
                         ps.price,
-                        pp.url.as("thumbnailUrl"),
+                        pp.fileUrl.as("thumbnailUrl"),
                         p.createdAt
                 ))
                 .from(p)

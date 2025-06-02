@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
-import me.sallim.api.global.entity.BaseEntity;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.LocalDateTime;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -12,7 +15,7 @@ import me.sallim.api.global.entity.BaseEntity;
 @Builder
 @Entity
 @Table(name = "product")
-public class Product extends BaseEntity {
+public class Product {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
@@ -41,6 +44,17 @@ public class Product extends BaseEntity {
 
     @Column(name = "product_photo_id")
     private Long productPhotoId;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;

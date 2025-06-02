@@ -1,0 +1,41 @@
+sequenceDiagram
+    title 상품 사진 업로드 프로세스
+
+    actor Client
+    participant ProductPhotoController
+    participant ProductPhotoService
+    participant ProductRepository
+    participant ProductPhotoRepository
+    participant S3Client
+    participant MinIO
+    participant Database
+
+    Client->>ProductPhotoController: POST /api/v1/products/{productId}/photos
+    Note over Client,ProductPhotoController: MultipartFile 전송
+
+    ProductPhotoController->>ProductPhotoService: uploadPhoto(productId, file)
+
+    ProductPhotoService->>ProductRepository: findById(productId)
+    ProductRepository->>Database: 상품 조회 쿼리
+    Database-->>ProductRepository: 상품 데이터 반환
+    ProductRepository-->>ProductPhotoService: Product 객체 반환
+
+    Note over ProductPhotoService: 파일명 생성 (UUID + 타임스탬프 + 확장자)
+    Note over ProductPhotoService: 파일 메타데이터 준비 (contentType 등)
+
+    ProductPhotoService->>S3Client: putObject(bucket, fileName, file)
+    S3Client->>MinIO: 파일 업로드 요청
+    MinIO-->>S3Client: 업로드 완료 응답
+
+    Note over ProductPhotoService: fileUrl 생성
+
+    ProductPhotoService->>ProductPhotoRepository: save(ProductPhoto)
+    ProductPhotoRepository->>Database: ProductPhoto 데이터 저장
+    Database-->>ProductPhotoRepository: 저장 결과 반환
+    ProductPhotoRepository-->>ProductPhotoService: 저장된 ProductPhoto 객체 반환
+
+    Note over ProductPhotoService: ProductPhotoResponse 객체 생성
+
+    ProductPhotoService-->>ProductPhotoController: ProductPhotoResponse 반환
+    ProductPhotoController-->>Client: 201 Created 응답 + ProductPhotoResponse JSON
+
