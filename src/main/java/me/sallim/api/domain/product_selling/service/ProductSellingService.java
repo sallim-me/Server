@@ -18,6 +18,7 @@ import me.sallim.api.domain.product_selling.repository.ProductSellingRepository;
 import me.sallim.api.domain.product_selling_answer.model.ProductSellingAnswer;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceTypeQuestion;
 import me.sallim.api.domain.product_selling_answer.repository.ProductSellingAnswerRepository;
+import me.sallim.api.domain.product_selling_answer.dto.response.ProductSellingAnswerResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class ProductSellingService {
     }
 
     @Transactional(readOnly = true)
-    public ProductSellingDetailResponse getProductSellingDetail(Long productId) {
+    public ProductSellingDetailResponse getProductSellingDetail(Long productId, Member currentMember) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 제품이 존재하지 않습니다."));
 
@@ -91,7 +92,24 @@ public class ProductSellingService {
 
         List<ProductSellingAnswer> answers = productSellingAnswerRepository.findByProduct(product);
 
-        return ProductSellingDetailResponse.from(selling, product, answers);
+        boolean isAuthor = false;
+        if (currentMember != null) {
+            isAuthor = product.getMember().getId().equals(currentMember.getId());
+        }
+
+        return ProductSellingDetailResponse.builder()
+                .title(product.getTitle())
+                .content(product.getContent())
+                .isActive(product.getIsActive())
+                .applianceType(product.getApplianceType())
+                .modelName(selling.getModelName())
+                .modelNumber(selling.getModelNumber())
+                .brand(selling.getBrand())
+                .price(selling.getPrice())
+                .userPrice(selling.getUserPrice())
+                .answers(answers.stream().map(ProductSellingAnswerResponse::from).toList())
+                .isAuthor(isAuthor)
+                .build();
     }
 
     @Transactional

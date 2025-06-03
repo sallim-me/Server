@@ -53,13 +53,16 @@ public class ProductBuyingController {
 
     @Operation(summary = "구매 글 단건 조회", description = """
         특정 구매 글의 상세 내용을 조회합니다.
+        로그인한 사용자의 경우 본인 작성 여부(isAuthor)를 함께 반환합니다.
 
         ### Path Variable
         - productId: 조회할 글 ID
         """)
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> getProductBuying(@PathVariable Long productId) {
-        return ResponseEntity.ok(ApiResponse.success(productBuyingService.getProductBuyingDetail(productId)));
+    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> getProductBuying(
+            @PathVariable Long productId,
+            @LoginMember Member member) {
+        return ResponseEntity.ok(ApiResponse.success(productBuyingService.getProductBuyingDetail(productId, member)));
     }
 
 

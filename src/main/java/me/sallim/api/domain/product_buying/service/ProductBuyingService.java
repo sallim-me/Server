@@ -51,10 +51,23 @@ public class ProductBuyingService {
     }
 
     @Transactional(readOnly = true)
-    public ProductBuyingDetailResponse getProductBuyingDetail(Long productId) {
+    public ProductBuyingDetailResponse getProductBuyingDetail(Long productId, Member currentMember) {
         ProductBuying productBuying = productBuyingRepository.findByProductId(productId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 글을 찾을 수 없습니다."));
-        return ProductBuyingDetailResponse.from(productBuying);
+
+        boolean isAuthor = false;
+        if (currentMember != null) {
+            isAuthor = productBuying.getProduct().getMember().getId().equals(currentMember.getId());
+        }
+
+        return new ProductBuyingDetailResponse(
+                productBuying.getProduct().getTitle(),
+                productBuying.getProduct().getContent(),
+                productBuying.getQuantity(),
+                productBuying.getProduct().getApplianceType(),
+                productBuying.getProduct().getIsActive(),
+                isAuthor
+        );
     }
 
     @Transactional

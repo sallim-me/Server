@@ -21,20 +21,16 @@ public class ProductService {
     public List<ProductListResponse> getAllProducts(Member currentMember) {
         List<ProductListResponse> products = productQueryRepository.findAllProducts();
         
-        // 각 상품에 대해 isScraped와 isAuthor 설정
+        // 각 상품에 대해 isScraped 설정
         for (ProductListResponse product : products) {
             if (currentMember != null) {
                 // 스크랩 여부 확인
                 boolean isScraped = scrapService.isProductScrappedByMember(product.getId(), currentMember.getId());
                 product.setIsScraped(isScraped);
-                
-                // 작성자 여부 확인
-                boolean isAuthor = product.getMemberId().equals(currentMember.getId());
-                product.setIsAuthor(isAuthor);
             } else {
                 product.setIsScraped(false);
-                product.setIsAuthor(false);
             }
+            // isAuthor 속성 제거
         }
         
         return products;

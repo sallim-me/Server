@@ -20,7 +20,8 @@ public record ProductSellingDetailResponse(
         String brand,
         int price,
         int userPrice,
-        List<ProductSellingAnswerResponse> answers
+        List<ProductSellingAnswerResponse> answers,
+        boolean isAuthor
 ) {
     public static ProductSellingDetailResponse from(ProductSelling selling, Product product, List<ProductSellingAnswer> answers) {
         return ProductSellingDetailResponse.builder()
@@ -34,6 +35,8 @@ public record ProductSellingDetailResponse(
                 .price(selling.getPrice())
                 .userPrice(selling.getUserPrice())
                 .answers(answers.stream().map(ProductSellingAnswerResponse::from).toList())
+                .isAuthor(false) // Default value, will be updated in service if needed
                 .build();
     }
 }
+

@@ -8,7 +8,8 @@ public record ProductBuyingDetailResponse(
         String content,
         int quantity,
         ApplianceType applianceType,
-        boolean isActive
+        boolean isActive,
+        boolean isAuthor
 ) {
     public static ProductBuyingDetailResponse from(ProductBuying productBuying) {
         return new ProductBuyingDetailResponse(
@@ -16,7 +17,8 @@ public record ProductBuyingDetailResponse(
                 productBuying.getProduct().getContent(),
                 productBuying.getQuantity(),
                 productBuying.getProduct().getApplianceType(),
-                productBuying.getProduct().getIsActive()
+                productBuying.getProduct().getIsActive(),
+                false // Default value, will be updated in service if needed
         );
     }
 }
