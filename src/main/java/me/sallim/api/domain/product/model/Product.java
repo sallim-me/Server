@@ -6,6 +6,7 @@ import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "product")
+@EntityListeners(AuditingEntityListener.class)
 public class Product {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,11 +49,11 @@ public class Product {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -63,3 +65,4 @@ public class Product {
         this.isActive = isActive;
     }
 }
+

@@ -32,6 +32,7 @@ public class ProductBuyingController {
 
     @Operation(summary = "구매 글 작성", description = """
         바이어 회원만 구매 글을 작성할 수 있습니다.
+        구매 수량은 최소 3개 이상이어야 합니다.
 
         ### 요청 예시:
         ```json
@@ -65,6 +66,7 @@ public class ProductBuyingController {
 
     @Operation(summary = "구매 글 수정", description = """
         구매 글의 제목, 내용, 수량, 가격, 가전 타입을 수정합니다.
+        구매 수량은 최소 3개 이상이어야 합니다.
 
         ### 요청 예시:
         ```json
