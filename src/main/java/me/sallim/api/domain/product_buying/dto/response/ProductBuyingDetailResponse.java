@@ -8,7 +8,6 @@ public record ProductBuyingDetailResponse(
         String content,
         int quantity,
         ApplianceType applianceType,
-        int price,
         boolean isActive
 ) {
     public static ProductBuyingDetailResponse from(ProductBuying productBuying) {
@@ -17,7 +16,6 @@ public record ProductBuyingDetailResponse(
                 productBuying.getProduct().getContent(),
                 productBuying.getQuantity(),
                 productBuying.getProduct().getApplianceType(),
-                productBuying.getPrice(),
                 productBuying.getProduct().getIsActive()
         );
     }

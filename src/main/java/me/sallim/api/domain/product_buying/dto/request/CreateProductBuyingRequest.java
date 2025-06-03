@@ -8,6 +8,6 @@ public record CreateProductBuyingRequest(
         String title,
         String content,
         int quantity,
-        ApplianceType applianceType,
-        int price
+        ApplianceType applianceType
 ) {}
+

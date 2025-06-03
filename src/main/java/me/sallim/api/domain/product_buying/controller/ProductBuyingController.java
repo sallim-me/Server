@@ -40,8 +40,7 @@ public class ProductBuyingController {
           "title": "냉장고 대량 구매",
           "content": "삼성 냉장고 10대 필요",
           "quantity": 10,
-          "applianceType": "REFRIGERATOR",
-          "price": 300000
+          "applianceType": "REFRIGERATOR"
         }
         ```
         """)
@@ -65,7 +64,7 @@ public class ProductBuyingController {
 
 
     @Operation(summary = "구매 글 수정", description = """
-        구매 글의 제목, 내용, 수량, 가격, 가전 타입을 수정합니다.
+        구매 글의 제목, 내용, 수량, 가전 타입을 수정합니다.
         구매 수량은 최소 3개 이상이어야 합니다.
 
         ### 요청 예시:
@@ -75,7 +74,7 @@ public class ProductBuyingController {
           "content": "LG 냉장고 5대 필요",
           "quantity": 5,
           "applianceType": "REFRIGERATOR",
-          "price": 250000
+          "isActive": true
         }
         ```
         """)

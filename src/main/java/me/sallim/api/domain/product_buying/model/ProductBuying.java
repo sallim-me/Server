@@ -24,11 +24,8 @@ public class ProductBuying {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
-    private Integer price;
-
-    public void update(Integer quantity, Integer price) {
+    public void update(Integer quantity) {
         this.quantity = quantity;
-        this.price = price;
     }
 }
+

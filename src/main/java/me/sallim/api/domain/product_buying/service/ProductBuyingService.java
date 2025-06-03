@@ -44,7 +44,6 @@ public class ProductBuyingService {
         ProductBuying productBuying = ProductBuying.builder()
                 .product(product)
                 .quantity(request.quantity())
-                .price(request.price())
                 .build();
         productBuyingRepository.save(productBuying);
 
@@ -77,8 +76,7 @@ public class ProductBuyingService {
             throw new IllegalArgumentException("본인이 작성한 글만 수정할 수 있습니다.");
         }
         productBuying.update(
-                request.quantity(),
-                request.price()
+                request.quantity()
         );
         productBuying.getProduct().updateProductInfo(
                 request.title(),
@@ -89,5 +87,4 @@ public class ProductBuyingService {
 
         return ProductBuyingDetailResponse.from(productBuying);
     }
-
 }
