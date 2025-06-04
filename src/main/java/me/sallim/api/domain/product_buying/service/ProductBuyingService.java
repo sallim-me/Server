@@ -62,6 +62,8 @@ public class ProductBuyingService {
 
         return new ProductBuyingDetailResponse(
                 productBuying.getProduct().getTitle(),
+                productBuying.getProduct().getMember().getNickname(),
+                productBuying.getProduct().getMember().getId(),
                 productBuying.getProduct().getContent(),
                 productBuying.getQuantity(),
                 productBuying.getProduct().getApplianceType(),
@@ -91,12 +93,24 @@ public class ProductBuyingService {
         productBuying.update(
                 request.quantity()
         );
-        productBuying.getProduct().updateProductInfo(
-                request.title(),
-                request.content(),
-                request.applianceType(),
-                request.isActive()
-        );
+
+        // isActive가 null이 아닌 경우에만 업데이트
+        if (request.isActive() != null) {
+            productBuying.getProduct().updateProductInfo(
+                    request.title(),
+                    request.content(),
+                    request.applianceType(),
+                    request.isActive()
+            );
+        } else {
+            // isActive 필드를 기존 값으로 유지
+            productBuying.getProduct().updateProductInfo(
+                    request.title(),
+                    request.content(),
+                    request.applianceType(),
+                    productBuying.getProduct().getIsActive()
+            );
+        }
 
         return ProductBuyingDetailResponse.from(productBuying);
     }

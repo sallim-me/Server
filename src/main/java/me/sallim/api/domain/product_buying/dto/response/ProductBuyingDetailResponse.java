@@ -5,6 +5,8 @@ import me.sallim.api.domain.product_buying.model.ProductBuying;
 
 public record ProductBuyingDetailResponse(
         String title,
+        String buyerNickname,
+        Long buyerId,
         String content,
         int quantity,
         ApplianceType applianceType,
@@ -14,6 +16,8 @@ public record ProductBuyingDetailResponse(
     public static ProductBuyingDetailResponse from(ProductBuying productBuying) {
         return new ProductBuyingDetailResponse(
                 productBuying.getProduct().getTitle(),
+                productBuying.getProduct().getMember().getNickname(),
+                productBuying.getProduct().getMember().getId(),
                 productBuying.getProduct().getContent(),
                 productBuying.getQuantity(),
                 productBuying.getProduct().getApplianceType(),
