@@ -168,10 +168,4 @@ public class ProductSellingController {
         productSellingService.deleteSellingProduct(loginMember, productId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
-
-    @GetMapping
-    public ResponseEntity<List<ProductSellingSummaryResponse>> getSellingProducts() {
-        List<ProductSellingSummaryResponse> summaries = productSellingService.getSellingSummaries();
-        return ResponseEntity.ok(summaries);
-    }
 }

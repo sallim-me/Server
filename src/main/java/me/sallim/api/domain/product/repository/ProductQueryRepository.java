@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.product.dto.ProductListResponse;
 import me.sallim.api.domain.product.model.QProduct;
+import me.sallim.api.domain.product_photo.model.QProductPhoto;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -31,10 +32,11 @@ public class ProductQueryRepository {
                         product.content,
                         product.createdAt,
                         product.member.id,
-                        product.isActive
+                        product.isActive,
+                        product.productPhotoId.fileUrl
                 ))
                 .from(product)
-//                .where(product.isActive.isTrue())
+                .leftJoin(product.productPhotoId)
                 .orderBy(product.createdAt.desc())
                 .fetch();
     }

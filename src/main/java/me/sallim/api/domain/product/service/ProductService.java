@@ -5,6 +5,7 @@ import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.product.dto.ProductListResponse;
 import me.sallim.api.domain.product.repository.ProductQueryRepository;
 import me.sallim.api.domain.product_scrap.service.ScrapService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProductService {
+
+    @Value("${spring.minio.endpoint}")
+    private String endpoint;
     
     private final ProductQueryRepository productQueryRepository;
     private final ScrapService scrapService;
@@ -30,7 +34,14 @@ public class ProductService {
             } else {
                 product.setIsScraped(false);
             }
-            // isAuthor 속성 제거
+
+            // thumbnail URL 설정
+            if (product.getThumbnailUrl() != null) {
+                product.setThumbnailUrl(endpoint + "/" + product.getThumbnailUrl());
+            } else {
+                // 썸네일이 없는 경우 기본 이미지 URL 설정 (필요시)
+//                product.setThumbnailUrl(endpoint + "/default-thumbnail.png");
+            }
         }
         
         return products;

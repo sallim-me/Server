@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.product_photo.model.ProductPhoto;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -44,8 +47,9 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private PostTypeEnum postType;
 
-    @Column(name = "product_photo_id")
-    private Long productPhotoId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_photo_id", nullable = true)
+    private ProductPhoto productPhotoId;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -57,6 +61,9 @@ public class Product {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductPhoto> productPhotos = new ArrayList<>();
 
     public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;

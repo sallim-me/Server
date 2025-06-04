@@ -38,10 +38,6 @@ public class ProductSellingService {
     private final ProductSellingAnswerRepository productSellingAnswerRepository;
     private final ApplianceTypeQuestionRepository questionRepository;
 
-    public List<ProductSellingSummaryResponse> getSellingSummaries() {
-        return productSellingQueryRepository.findAllProductSellingSummaries();
-    }
-
     @Transactional
     public ProductSellingDetailResponse createSellingProduct(Member member, CreateProductSellingRequest request) {
         // 1. Product 저장
