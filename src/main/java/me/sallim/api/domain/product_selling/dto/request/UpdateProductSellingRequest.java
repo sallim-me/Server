@@ -16,7 +16,7 @@ public class UpdateProductSellingRequest {
     private String title;
     private String content;
     private ApplianceType applianceType;
-    private boolean isActive;
+    private Boolean isActive; // primitive boolean에서 Boolean wrapper 클래스로 변경
 
     private String modelNumber;
     private String modelName;
@@ -26,3 +26,4 @@ public class UpdateProductSellingRequest {
 
     private List<ProductSellingAnswerRequest> answers;
 }
+
