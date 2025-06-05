@@ -1,28 +1,22 @@
 package me.sallim.api.domain.chat.repository;
 
-import me.sallim.api.domain.chat.dto.ChatRoomWithLastMessageDto;
 import me.sallim.api.domain.chat.model.ChatRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
+@Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+    List<ChatRoom> findByProductId(Long productId);
 
-    @Query("""
-        SELECT new me.sallim.api.domain.chat.dto.ChatRoomWithLastMessageDto(
-            cr.id, cr.productId, cr.sellerId, cr.buyerId,
-            cm.id, cm.content, cm.senderId, cm.createdAt
-        )
-        FROM ChatRoom cr
-        LEFT JOIN ChatMessage cm ON cm.chatRoomId = cr.id
-        WHERE (cr.sellerId = :userId OR cr.buyerId = :userId)
-          AND cm.createdAt = (
-              SELECT MAX(m.createdAt)
-              FROM ChatMessage m
-              WHERE m.chatRoomId = cr.id
-          )
-    """)
-    List<ChatRoomWithLastMessageDto> findChatRoomsWithLastMessageByUser(@Param("userId") Long userId);
+    // Find chat room by product, seller, and buyer
+    Optional<ChatRoom> findByProductIdAndSellerIdAndBuyerId(Long productId, Long sellerId, Long buyerId);
+
+    // Find all chat rooms where the user is either seller or buyer
+    @Query("SELECT cr FROM ChatRoom cr WHERE cr.sellerId = :memberId OR cr.buyerId = :memberId")
+    List<ChatRoom> findByMemberId(@Param("memberId") Long memberId);
 }

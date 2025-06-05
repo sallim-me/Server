@@ -71,5 +71,9 @@ public class Product {
         this.applianceType = applianceType;
         this.isActive = isActive;
     }
+
+    public boolean isDeleted() {
+        return this.isActive == null || !this.isActive;
+    }
 }
 

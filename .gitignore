@@ -2,6 +2,7 @@
 .env.development
 .env.production
 .env.*.local
+firebase.json
 
 *.DS_Store
 

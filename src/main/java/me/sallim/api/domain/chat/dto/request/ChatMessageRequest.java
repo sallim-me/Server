@@ -1,6 +1,9 @@
-package me.sallim.api.dto;
+package me.sallim.api.domain.chat.dto.request;
 
-public class ChatMessageDto {
+import lombok.Getter;
+
+@Getter
+public class ChatMessageRequest {
     private Long chatRoomId;
     private Long senderId;
     private Long receiverId;

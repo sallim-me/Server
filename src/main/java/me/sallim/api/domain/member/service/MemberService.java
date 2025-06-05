@@ -62,4 +62,11 @@ public class MemberService {
                 .map(MemberPostSummaryResponse::from)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void updateFcmToken(Long memberId, String fcmToken) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        member.updateFcmToken(fcmToken);
+    }
 }

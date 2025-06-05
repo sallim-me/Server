@@ -77,11 +77,12 @@ public class SecurityConfig {
         return source;
     }
 
-    private String[] getPermittedPaths() {
-        List<String> paths = new ArrayList<>(Arrays.asList(
+    private String[] getPermittedPaths() {        List<String> paths = new ArrayList<>(Arrays.asList(
                 "/crawler/**",
                 "/auth/**",
                 "/member/profile",
+                "/health-check",
+                "/ws-chat/**",  // WebSocket endpoint
                 "/product/all",
                 "/health-check"
         ));
@@ -90,6 +91,7 @@ public class SecurityConfig {
             paths.addAll(Arrays.asList(
                     "/swagger-ui/**",
                     "/swagger-ui.html",
+                    "/v3/api-docs.yaml",
                     "/v3/api-docs/**",
                     "/v3/api-docs**",
                     "/swagger-resources/**",

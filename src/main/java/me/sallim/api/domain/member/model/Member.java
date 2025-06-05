@@ -36,6 +36,9 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private Boolean isBuyer; // 바이어 여부
 
+    @Column(name = "fcm_token")
+    private String fcmToken; // Firebase Cloud Messaging 토큰
+
     @Builder.Default
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Product> products = new ArrayList<>();
@@ -62,5 +65,9 @@ public class Member extends BaseEntity {
 
     public void updateIsBuyer(Boolean isBuyer) {
         this.isBuyer = isBuyer;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 }

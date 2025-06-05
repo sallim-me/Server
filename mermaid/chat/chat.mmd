@@ -1,0 +1,46 @@
+sequenceDiagram
+    autonumber
+    participant FE_A as 사용자 A (보낸 사람)
+    participant FE_B as 사용자 B (받는 사람)
+    participant SPRING as Spring Boot API
+    participant Kafka as Kafka Broker
+    participant SPRING_Consumer as Spring Boot API (Consumer)
+    participant Redis as Redis (세션 저장소)
+    participant DB as MySQL
+    participant FCM as Firebase FCM
+
+%% 사용자 B 채팅방 입장
+    note over FE_B, DB: 사용자 B가 채팅방에 입장하는 과정
+    FE_B->>SPRING: GET /chat/message
+    SPRING->>DB: 채팅방의 메시지 조회 (roomId, userId(A)로)
+    SPRING-->>FE_B: 채팅방의 메시지 조회 결과 (messageId, content 등)
+    FE_B->>SPRING: WebSocket 연결 (ws://.../chat)
+    SPRING->>Redis: B의 세션 등록 (roomID, userId(B) → sessionId)
+
+%% 사용자 A가 메시지 전송
+    note over FE_A, DB: 사용자 A가 채팅방에서 메시지 전송하는 과정
+    FE_A->>SPRING: POST /chat/message
+    SPRING->>Kafka: kafkaTemplate.send("chat-messages", ChatMessageDto)
+
+%% Kafka consumer 동작
+    note over FE_B, FCM: [처리 시작] Spring Boot Consumer가 Kafka 메시지를 처리하는 과정
+    Kafka-->>SPRING_Consumer: ChatMessageDto 수신
+    SPRING_Consumer->>DB: A의 메시지 저장 (roomId, userId(A)로)
+    SPRING_Consumer->>Redis: B의 세션 조회 (roomId, userId(A)로)
+
+    alt WebSocket 세션 존재
+        SPRING_Consumer->>FE_B: WebSocket 메시지 전송 ("new_message", messageId)
+        alt WebSocket 응답 대기 중 (2초 이내)
+        FE_B->>SPRING_Consumer: WebSocket 응답 ("received", messageId)
+        note right of SPRING_Consumer: [처리 종료] 사용자 B가 채팅창을 새로고침
+        FE_B->>SPRING: GET /chat/message
+        SPRING->>DB: 채팅방의 메시지 조회 (roomId, userId(A)로)
+        SPRING-->>FE_B: 채팅방의 메시지 조회 결과 (messageId, content 등)
+        else WebSocket 응답 대기 없음
+            SPRING_Consumer->>FCM: FCM 알림 전송 ("새 메시지 도착")
+            note left of FCM: [처리 종료] Flutter 앱에 알림 표시
+        end
+    else 세션 없음
+        SPRING_Consumer->>FCM: FCM 알림 전송 ("새 메시지 도착") [처리 종료]
+        note left of FCM: [처리 종료] Flutter 앱에 알림 표시
+    end

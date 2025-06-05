@@ -40,4 +40,14 @@ public class ProductQueryRepository {
                 .orderBy(product.createdAt.desc())
                 .fetch();
     }
+    
+    public Long findSellerIdById(Long productId) {
+        QProduct product = QProduct.product;
+        
+        return queryFactory
+                .select(product.member.id)
+                .from(product)
+                .where(product.id.eq(productId))
+                .fetchOne();
+    }
 }
