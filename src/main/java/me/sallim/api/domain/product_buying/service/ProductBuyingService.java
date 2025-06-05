@@ -44,7 +44,6 @@ public class ProductBuyingService {
         ProductBuying productBuying = ProductBuying.builder()
                 .product(product)
                 .quantity(request.quantity())
-                .price(request.price())
                 .build();
         productBuyingRepository.save(productBuying);
 
@@ -52,10 +51,25 @@ public class ProductBuyingService {
     }
 
     @Transactional(readOnly = true)
-    public ProductBuyingDetailResponse getProductBuyingDetail(Long productId) {
+    public ProductBuyingDetailResponse getProductBuyingDetail(Long productId, Member currentMember) {
         ProductBuying productBuying = productBuyingRepository.findByProductId(productId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 글을 찾을 수 없습니다."));
-        return ProductBuyingDetailResponse.from(productBuying);
+
+        boolean isAuthor = false;
+        if (currentMember != null) {
+            isAuthor = productBuying.getProduct().getMember().getId().equals(currentMember.getId());
+        }
+
+        return new ProductBuyingDetailResponse(
+                productBuying.getProduct().getTitle(),
+                productBuying.getProduct().getMember().getNickname(),
+                productBuying.getProduct().getMember().getId(),
+                productBuying.getProduct().getContent(),
+                productBuying.getQuantity(),
+                productBuying.getProduct().getApplianceType(),
+                productBuying.getProduct().getIsActive(),
+                isAuthor
+        );
     }
 
     @Transactional
@@ -77,17 +91,27 @@ public class ProductBuyingService {
             throw new IllegalArgumentException("본인이 작성한 글만 수정할 수 있습니다.");
         }
         productBuying.update(
-                request.quantity(),
-                request.price()
+                request.quantity()
         );
-        productBuying.getProduct().updateProductInfo(
-                request.title(),
-                request.content(),
-                request.applianceType(),
-                request.isActive()
-        );
+
+        // isActive가 null이 아닌 경우에만 업데이트
+        if (request.isActive() != null) {
+            productBuying.getProduct().updateProductInfo(
+                    request.title(),
+                    request.content(),
+                    request.applianceType(),
+                    request.isActive()
+            );
+        } else {
+            // isActive 필드를 기존 값으로 유지
+            productBuying.getProduct().updateProductInfo(
+                    request.title(),
+                    request.content(),
+                    request.applianceType(),
+                    productBuying.getProduct().getIsActive()
+            );
+        }
 
         return ProductBuyingDetailResponse.from(productBuying);
     }
-
 }

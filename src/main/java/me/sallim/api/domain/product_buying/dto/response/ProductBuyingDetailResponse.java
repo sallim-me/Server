@@ -5,20 +5,24 @@ import me.sallim.api.domain.product_buying.model.ProductBuying;
 
 public record ProductBuyingDetailResponse(
         String title,
+        String buyerNickname,
+        Long buyerId,
         String content,
         int quantity,
         ApplianceType applianceType,
-        int price,
-        boolean isActive
+        boolean isActive,
+        boolean isAuthor
 ) {
     public static ProductBuyingDetailResponse from(ProductBuying productBuying) {
         return new ProductBuyingDetailResponse(
                 productBuying.getProduct().getTitle(),
+                productBuying.getProduct().getMember().getNickname(),
+                productBuying.getProduct().getMember().getId(),
                 productBuying.getProduct().getContent(),
                 productBuying.getQuantity(),
                 productBuying.getProduct().getApplianceType(),
-                productBuying.getPrice(),
-                productBuying.getProduct().getIsActive()
+                productBuying.getProduct().getIsActive(),
+                false // Default value, will be updated in service if needed
         );
     }
 }

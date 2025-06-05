@@ -73,6 +73,7 @@ public class ProductSellingController {
         특정 판매글의 상세 정보를 조회합니다.
 
         - 제품 정보와 함께, 해당 제품 종류의 고정 질문 목록과 그에 대한 사용자의 답변을 함께 반환합니다.
+        - 로그인한 사용자의 경우 본인 작성 여부(isAuthor)를 함께 반환합니다.
 
         ### Path Variable:
         - `productId`: 조회할 판매글(제품)의 ID
@@ -93,6 +94,7 @@ public class ProductSellingController {
             "price": 800000,
             "userPrice": 750000,
             "isActive": true,
+            "isAuthor": true,
             "answers": [
               {
                 "questionId": 1,
@@ -107,8 +109,10 @@ public class ProductSellingController {
         """
     )
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductSellingDetailResponse>> getProductSellingDetail(@PathVariable Long productId) {
-        ProductSellingDetailResponse detail = productSellingService.getProductSellingDetail(productId);
+    public ResponseEntity<ApiResponse<ProductSellingDetailResponse>> getProductSellingDetail(
+            @PathVariable Long productId,
+            @LoginMember Member member) {
+        ProductSellingDetailResponse detail = productSellingService.getProductSellingDetail(productId, member);
         return ResponseEntity.ok(ApiResponse.success(detail));
     }
 
@@ -163,11 +167,5 @@ public class ProductSellingController {
             @PathVariable Long productId) {
         productSellingService.deleteSellingProduct(loginMember, productId);
         return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<ProductSellingSummaryResponse>> getSellingProducts() {
-        List<ProductSellingSummaryResponse> summaries = productSellingService.getSellingSummaries();
-        return ResponseEntity.ok(summaries);
     }
 }

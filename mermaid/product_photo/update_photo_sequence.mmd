@@ -1,0 +1,46 @@
+sequenceDiagram
+    title 상품 사진 수정 프로세스
+
+    actor Client
+    participant ProductPhotoController
+    participant ProductPhotoService
+    participant ProductRepository
+    participant ProductPhotoRepository
+    participant S3Client
+    participant MinIO
+    participant Database
+
+    Client->>ProductPhotoController: PUT /api/v1/products/{productId}/photos/{photoId}
+    Note over Client,ProductPhotoController: MultipartFile 전송
+
+    ProductPhotoController->>ProductPhotoService: updatePhoto(productId, photoId, file)
+
+    ProductPhotoService->>ProductRepository: findById(productId)
+    ProductRepository->>Database: 상품 조회 쿼리
+    Database-->>ProductRepository: 상품 데이터 반환
+    ProductRepository-->>ProductPhotoService: Product 객체 반환
+
+    ProductPhotoService->>ProductPhotoRepository: findByProductAndId(product, photoId)
+    ProductPhotoRepository->>Database: 사진 조회 쿼리
+    Database-->>ProductPhotoRepository: 사진 데이터 반환
+    ProductPhotoRepository-->>ProductPhotoService: ProductPhoto 객체 반환
+
+    ProductPhotoService->>S3Client: deleteObject(bucket, fileName)
+    S3Client->>MinIO: 기존 파일 삭제 요청
+    MinIO-->>S3Client: 삭제 완료 응답
+
+    Note over ProductPhotoService: 새 파일명 생성 (UUID + 타임스탬프 + 확장자)
+    Note over ProductPhotoService: 파일 메타데이터 준비 (contentType 등)
+
+    ProductPhotoService->>S3Client: putObject(bucket, fileName, file)
+    S3Client->>MinIO: 새 파일 업로드 요청
+    MinIO-->>S3Client: 업로드 완료 응답
+
+    Note over ProductPhotoService: 새 fileUrl 생성
+
+    ProductPhotoService->>ProductPhoto: updatePhoto(fileName, fileUrl, contentType, fileSize)
+    Note over ProductPhotoService: ProductPhoto 객체 업데이트
+
+    ProductPhotoService-->>ProductPhotoController: ProductPhotoResponse 반환
+    ProductPhotoController-->>Client: 200 OK 응답 + ProductPhotoResponse JSON
+

@@ -4,7 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
-import me.sallim.api.global.entity.BaseEntity;
+import me.sallim.api.domain.product_photo.model.ProductPhoto;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -12,7 +19,8 @@ import me.sallim.api.global.entity.BaseEntity;
 @Builder
 @Entity
 @Table(name = "product")
-public class Product extends BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class Product {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
@@ -39,8 +47,23 @@ public class Product extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PostTypeEnum postType;
 
-    @Column(name = "product_photo_id")
-    private Long productPhotoId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_photo_id", nullable = true)
+    private ProductPhoto productPhotoId;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductPhoto> productPhotos = new ArrayList<>();
 
     public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;
@@ -53,3 +76,4 @@ public class Product extends BaseEntity {
         return this.isActive == null || !this.isActive;
     }
 }
+

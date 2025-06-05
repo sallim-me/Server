@@ -18,6 +18,7 @@ import me.sallim.api.domain.product_selling.repository.ProductSellingRepository;
 import me.sallim.api.domain.product_selling_answer.model.ProductSellingAnswer;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceTypeQuestion;
 import me.sallim.api.domain.product_selling_answer.repository.ProductSellingAnswerRepository;
+import me.sallim.api.domain.product_selling_answer.dto.response.ProductSellingAnswerResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,10 +37,6 @@ public class ProductSellingService {
     private final ApplianceTypeQuestionRepository applianceTypeQuestionRepository;
     private final ProductSellingAnswerRepository productSellingAnswerRepository;
     private final ApplianceTypeQuestionRepository questionRepository;
-
-    public List<ProductSellingSummaryResponse> getSellingSummaries() {
-        return productSellingQueryRepository.findAllProductSellingSummaries();
-    }
 
     @Transactional
     public ProductSellingDetailResponse createSellingProduct(Member member, CreateProductSellingRequest request) {
@@ -82,7 +79,7 @@ public class ProductSellingService {
     }
 
     @Transactional(readOnly = true)
-    public ProductSellingDetailResponse getProductSellingDetail(Long productId) {
+    public ProductSellingDetailResponse getProductSellingDetail(Long productId, Member currentMember) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 제품이 존재하지 않습니다."));
 
@@ -91,7 +88,24 @@ public class ProductSellingService {
 
         List<ProductSellingAnswer> answers = productSellingAnswerRepository.findByProduct(product);
 
-        return ProductSellingDetailResponse.from(selling, product, answers);
+        boolean isAuthor = false;
+        if (currentMember != null) {
+            isAuthor = product.getMember().getId().equals(currentMember.getId());
+        }
+
+        return ProductSellingDetailResponse.builder()
+                .title(product.getTitle())
+                .content(product.getContent())
+                .isActive(product.getIsActive())
+                .applianceType(product.getApplianceType())
+                .modelName(selling.getModelName())
+                .modelNumber(selling.getModelNumber())
+                .brand(selling.getBrand())
+                .price(selling.getPrice())
+                .userPrice(selling.getUserPrice())
+                .answers(answers.stream().map(ProductSellingAnswerResponse::from).toList())
+                .isAuthor(isAuthor)
+                .build();
     }
 
     @Transactional
@@ -106,7 +120,23 @@ public class ProductSellingService {
         ApplianceType oldType = product.getApplianceType();
         ApplianceType newType = request.getApplianceType();
 
-        product.updateProductInfo(request.getTitle(), request.getContent(), newType, request.isActive());
+        // isActive가 null이 아닌 경우에만 업데이트
+        if (request.getIsActive() != null) {
+            product.updateProductInfo(
+                request.getTitle(),
+                request.getContent(),
+                newType,
+                request.getIsActive()
+            );
+        } else {
+            // isActive 필드를 기존 값으로 유지
+            product.updateProductInfo(
+                request.getTitle(),
+                request.getContent(),
+                newType,
+                product.getIsActive()
+            );
+        }
 
         ProductSelling selling = productSellingRepository.findByProduct(product)
                 .orElseThrow(() -> new IllegalArgumentException("판매 정보가 존재하지 않습니다."));
@@ -120,35 +150,39 @@ public class ProductSellingService {
 
         List<ProductSellingAnswer> updatedAnswers;
 
-        if (!oldType.equals(newType)) {
-            productSellingAnswerRepository.deleteByProduct(product);
-            List<ApplianceTypeQuestion> questions = questionRepository.findByApplianceType(newType);
-            if (questions.size() != request.getAnswers().size()) {
-                throw new IllegalArgumentException("답변 수와 고정 질문 수가 일치하지 않습니다.");
-            }
-
-            updatedAnswers = IntStream.range(0, questions.size())
-                    .mapToObj(i -> ProductSellingAnswer.builder()
-                            .product(product)
-                            .question(questions.get(i))
-                            .content(request.getAnswers().get(i).getAnswerContent())
-                            .build())
-                    .toList();
-            productSellingAnswerRepository.saveAll(updatedAnswers);
-        } else {
-            List<ProductSellingAnswer> existingAnswers = productSellingAnswerRepository.findByProduct(product);
-            Map<Long, ProductSellingAnswer> existingMap = existingAnswers.stream()
-                    .collect(Collectors.toMap(ans -> ans.getQuestion().getId(), ans -> ans));
-
-            request.getAnswers().forEach(reqAnswer -> {
-                ProductSellingAnswer matched = existingMap.get(reqAnswer.getQuestionId());
-                if (matched == null) {
-                    throw new IllegalArgumentException("기존 답변 중 일치하는 질문이 없습니다. questionId=" + reqAnswer.getQuestionId());
+        if (request.getAnswers() != null && !request.getAnswers().isEmpty()) {
+            if (!oldType.equals(newType)) {
+                productSellingAnswerRepository.deleteByProduct(product);
+                List<ApplianceTypeQuestion> questions = questionRepository.findByApplianceType(newType);
+                if (questions.size() != request.getAnswers().size()) {
+                    throw new IllegalArgumentException("답변 수와 고정 질문 수가 일치하지 않습니다.");
                 }
-                matched.updateAnswerContent(reqAnswer.getAnswerContent());
-            });
 
-            updatedAnswers = existingAnswers;
+                updatedAnswers = IntStream.range(0, questions.size())
+                        .mapToObj(i -> ProductSellingAnswer.builder()
+                                .product(product)
+                                .question(questions.get(i))
+                                .content(request.getAnswers().get(i).getAnswerContent())
+                                .build())
+                        .toList();
+                productSellingAnswerRepository.saveAll(updatedAnswers);
+            } else {
+                List<ProductSellingAnswer> existingAnswers = productSellingAnswerRepository.findByProduct(product);
+                Map<Long, ProductSellingAnswer> existingMap = existingAnswers.stream()
+                        .collect(Collectors.toMap(ans -> ans.getQuestion().getId(), ans -> ans));
+
+                request.getAnswers().forEach(reqAnswer -> {
+                    ProductSellingAnswer matched = existingMap.get(reqAnswer.getQuestionId());
+                    if (matched == null) {
+                        throw new IllegalArgumentException("기존 답변 중 일치하는 질문이 없습니다. questionId=" + reqAnswer.getQuestionId());
+                    }
+                    matched.updateAnswerContent(reqAnswer.getAnswerContent());
+                });
+
+                updatedAnswers = existingAnswers;
+            }
+        } else {
+            updatedAnswers = productSellingAnswerRepository.findByProduct(product);
         }
 
         return ProductSellingDetailResponse.from(selling, product, updatedAnswers);

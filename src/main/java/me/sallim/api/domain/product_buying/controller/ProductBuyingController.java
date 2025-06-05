@@ -32,6 +32,7 @@ public class ProductBuyingController {
 
     @Operation(summary = "구매 글 작성", description = """
         바이어 회원만 구매 글을 작성할 수 있습니다.
+        구매 수량은 최소 3개 이상이어야 합니다.
 
         ### 요청 예시:
         ```json
@@ -39,8 +40,7 @@ public class ProductBuyingController {
           "title": "냉장고 대량 구매",
           "content": "삼성 냉장고 10대 필요",
           "quantity": 10,
-          "applianceType": "REFRIGERATOR",
-          "price": 300000
+          "applianceType": "REFRIGERATOR"
         }
         ```
         """)
@@ -53,18 +53,22 @@ public class ProductBuyingController {
 
     @Operation(summary = "구매 글 단건 조회", description = """
         특정 구매 글의 상세 내용을 조회합니다.
+        로그인한 사용자의 경우 본인 작성 여부(isAuthor)를 함께 반환합니다.
 
         ### Path Variable
         - productId: 조회할 글 ID
         """)
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> getProductBuying(@PathVariable Long productId) {
-        return ResponseEntity.ok(ApiResponse.success(productBuyingService.getProductBuyingDetail(productId)));
+    public ResponseEntity<ApiResponse<ProductBuyingDetailResponse>> getProductBuying(
+            @PathVariable Long productId,
+            @LoginMember Member member) {
+        return ResponseEntity.ok(ApiResponse.success(productBuyingService.getProductBuyingDetail(productId, member)));
     }
 
 
     @Operation(summary = "구매 글 수정", description = """
-        구매 글의 제목, 내용, 수량, 가격, 가전 타입을 수정합니다.
+        구매 글의 제목, 내용, 수량, 가전 타입을 수정합니다.
+        구매 수량은 최소 3개 이상이어야 합니다.
 
         ### 요청 예시:
         ```json
@@ -73,7 +77,7 @@ public class ProductBuyingController {
           "content": "LG 냉장고 5대 필요",
           "quantity": 5,
           "applianceType": "REFRIGERATOR",
-          "price": 250000
+          "isActive": true
         }
         ```
         """)
