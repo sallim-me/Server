@@ -28,7 +28,7 @@ public class ProductCommentService {
 
         ProductComment comment = ProductComment.builder()
                 .product(product)
-                .memberId(loginMember.getId())
+                .member(loginMember)
                 .content(request.content())
                 .build();
 
@@ -48,7 +48,7 @@ public class ProductCommentService {
         ProductComment comment = productCommentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
 
-        if (!comment.getMemberId().equals(loginMember.getId())) {
+        if (!comment.getMember().getId().equals(loginMember.getId())) {
             throw new IllegalArgumentException("본인이 작성한 댓글만 삭제할 수 있습니다.");
         }
 
