@@ -80,7 +80,7 @@ public class ProductSellingService {
 
     @Transactional(readOnly = true)
     public ProductSellingDetailResponse getProductSellingDetail(Long productId, Member currentMember) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdWithMember(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 제품이 존재하지 않습니다."));
 
         ProductSelling selling = productSellingRepository.findByProduct(product)
@@ -105,12 +105,13 @@ public class ProductSellingService {
                 .userPrice(selling.getUserPrice())
                 .answers(answers.stream().map(ProductSellingAnswerResponse::from).toList())
                 .isAuthor(isAuthor)
+                .nickname(product.getMember().getNickname())
                 .build();
     }
 
     @Transactional
     public ProductSellingDetailResponse updateSellingProduct(Member loginMember, Long productId, UpdateProductSellingRequest request) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdWithMember(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 제품이 존재하지 않습니다."));
 
         if (!product.getMember().getId().equals(loginMember.getId())) {
@@ -190,7 +191,7 @@ public class ProductSellingService {
 
     @Transactional
     public void deleteSellingProduct(Member loginMember, Long productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdWithMember(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 제품이 존재하지 않습니다."));
 
         if (!product.getMember().getId().equals(loginMember.getId())) {
