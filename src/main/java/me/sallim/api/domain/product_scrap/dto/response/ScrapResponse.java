@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product_scrap.model.Scrap;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ public class ScrapResponse {
     private Long memberId;
     private String memberNickname;
     private Long productId;
+    private PostTypeEnum postType;
     private Integer productPrice;
     private String productTitle;
     private String memo;
@@ -28,6 +30,7 @@ public class ScrapResponse {
                 .memberId(scrap.getMember().getId())
                 .memberNickname(scrap.getMember().getNickname())
                 .productId(scrap.getProduct().getId())
+                .postType(scrap.getProduct().getPostType())
                 .productPrice(
                         scrap.getProduct().getProductSelling() != null ?
                                 scrap.getProduct().getProductSelling().getPrice()
