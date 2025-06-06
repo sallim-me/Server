@@ -7,12 +7,14 @@ import me.sallim.api.domain.product_comment.model.ProductComment;
 public record ProductCommentResponse(
         Long commentId,
         Long memberId,
+        String nickname,
         String content
 ) {
     public static ProductCommentResponse from(ProductComment comment) {
         return new ProductCommentResponse(
                 comment.getId(),
-                comment.getMemberId(),
+                comment.getMember().getId(),
+                comment.getMember().getNickname(),
                 comment.getContent()
         );
     }
