@@ -17,6 +17,7 @@ public class ScrapResponse {
     private Long memberId;
     private String memberNickname;
     private Long productId;
+    private Integer productPrice;
     private String productTitle;
     private String memo;
     private LocalDateTime createdAt;
@@ -27,6 +28,11 @@ public class ScrapResponse {
                 .memberId(scrap.getMember().getId())
                 .memberNickname(scrap.getMember().getNickname())
                 .productId(scrap.getProduct().getId())
+                .productPrice(
+                        scrap.getProduct().getProductSelling() != null ?
+                                scrap.getProduct().getProductSelling().getPrice()
+                                : null
+                )
                 .productTitle(scrap.getProduct().getTitle())
                 .memo(scrap.getMemo())
                 .createdAt(scrap.getCreatedAt())

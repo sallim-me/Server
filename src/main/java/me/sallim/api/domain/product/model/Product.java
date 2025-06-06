@@ -5,6 +5,7 @@ import lombok.*;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.product_photo.model.ProductPhoto;
+import me.sallim.api.domain.product_selling.model.ProductSelling;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -64,6 +65,9 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductPhoto> productPhotos = new ArrayList<>();
+
+    @OneToOne(mappedBy = "product")
+    private ProductSelling productSelling;
 
     public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;

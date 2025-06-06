@@ -79,7 +79,7 @@ public class ScrapController {
     public ResponseEntity<ScrapListResponse> getScrapsByMember(
 //            @Parameter(description = "로그인된 사용자 정보", required = true)
             @LoginMember Member member,
-            @Parameter(description = "페이지네이션 정보")
+            @Parameter(description = "페이지네이션 정보", required = false)
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(scrapService.getScrapsByMemberId(member.getId(), pageable));
     }
@@ -88,7 +88,7 @@ public class ScrapController {
         사용자의 스크랩을 삭제합니다.
         
         ### Path Variable:
-        - scrapId: 삭제할 스크랩 ID
+        - scrapId: 삭제할 스크랩 게시글 ID
         
         ### 응답:
         - 204 No Content: 스크랩 삭제 성공
@@ -100,13 +100,13 @@ public class ScrapController {
         @ApiResponse(responseCode = "403", description = "권한 없음"),
         @ApiResponse(responseCode = "404", description = "존재하지 않는 스크랩")
     })
-    @DeleteMapping("/{scrapId}")
+    @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteScrap(
-            @Parameter(description = "삭제할 스크랩 ID", required = true)
-            @PathVariable Long scrapId,
+            @Parameter(description = "삭제할 제품 게시글 ID", required = true)
+            @PathVariable Long productId,
             @Parameter(description = "로그인된 사용자 정보", required = true)
             @LoginMember Member member) {
-        scrapService.deleteScrap(scrapId, member.getId());
+        scrapService.deleteScrapByProductId(productId, member.getId());
         return ResponseEntity.noContent().build();
     }
 

@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ScrapService {
@@ -60,8 +62,14 @@ public class ScrapService {
 
     @Transactional
     public void deleteScrap(Long scrapId, Long memberId) {
-        Scrap scrap = scrapRepository.findById(scrapId)
-                .orElseThrow(() -> new EntityNotFoundException("Scrap not found with id: " + scrapId));
+        // Check if the scrap exists, return without throwing an exception if not found
+        Optional<Scrap> optionalScrap = scrapRepository.findById(scrapId);
+        if (optionalScrap.isEmpty()) {
+            // Scrap already doesn't exist, no need to delete
+            return;
+        }
+
+        Scrap scrap = optionalScrap.get();
 
         // 스크랩이 해당 회원의 것인지 확인
         if (!scrap.getMember().getId().equals(memberId)) {
@@ -70,6 +78,20 @@ public class ScrapService {
 
         // 물리적 삭제 (데이터베이스에서 실제로 레코드 삭제)
         scrapRepository.delete(scrap);
+    }
+
+    @Transactional
+    public void deleteScrapByProductId(Long productId, Long memberId) {
+        // 회원 ID와 상품 ID로 스크랩 찾기
+        Optional<Scrap> optionalScrap = scrapRepository.findByMemberIdAndProductId(memberId, productId);
+
+        // 스크랩이 존재하지 않으면 리턴
+        if (optionalScrap.isEmpty()) {
+            return;
+        }
+
+        // 스크랩 삭제
+        scrapRepository.delete(optionalScrap.get());
     }
 
     @Transactional
