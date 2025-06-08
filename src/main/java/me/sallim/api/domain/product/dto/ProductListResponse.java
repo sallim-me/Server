@@ -3,12 +3,8 @@ package me.sallim.api.domain.product.dto;
 import lombok.*;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.product.model.PostTypeEnum;
-import me.sallim.api.domain.product_photo.model.ProductPhoto;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -18,6 +14,8 @@ import java.util.stream.Collectors;
 public class ProductListResponse {
     private Long id;
     private String title;
+    private Integer price;
+    private Integer quantity;
     private PostTypeEnum tradeType; // "SELLING" or "BUYING"
     private ApplianceType category; // REFRIGERATOR, WASHING_MACHINE, AIR_CONDITIONER
     private String modelName; // 현재는 빈 문자열 (Product 테이블에 없음)
@@ -31,16 +29,16 @@ public class ProductListResponse {
     private String thumbnailUrl; // 썸네일 URL
 
     // QueryDSL Projections용 생성자 (isScraped, isAuthor 제외)
-    public ProductListResponse(Long id, String title, PostTypeEnum tradeType, 
-                             ApplianceType category, String modelName, 
-                             String priceOrQuantity, String description, 
+    public ProductListResponse(Long id, String title, Integer price, Integer quantity, PostTypeEnum tradeType,
+                             ApplianceType category, String modelName, String description,
                              LocalDateTime createdAt, Long memberId, Boolean isActive, String thumbnailUrl) {
         this.id = id;
         this.title = title;
+        this.price = price;
+        this.quantity = quantity;
         this.tradeType = tradeType;
         this.category = category;
         this.modelName = modelName;
-        this.priceOrQuantity = priceOrQuantity;
         this.description = description;
         this.createdAt = createdAt;
         this.memberId = memberId;

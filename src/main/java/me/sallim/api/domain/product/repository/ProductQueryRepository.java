@@ -6,7 +6,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.product.dto.ProductListResponse;
 import me.sallim.api.domain.product.model.QProduct;
-import me.sallim.api.domain.product_photo.model.QProductPhoto;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,10 +24,11 @@ public class ProductQueryRepository {
                 .select(Projections.constructor(ProductListResponse.class,
                         product.id,
                         product.title,
+                        product.productSelling.price,
+                        product.productBuying.quantity,
                         product.postType,
                         product.applianceType,
                         Expressions.constant(""), // modelName은 product 테이블에 없으므로 빈 문자열
-                        Expressions.constant(""), // priceOrQuantity도 product 테이블에 없으므로 빈 문자열
                         product.content,
                         product.createdAt,
                         product.member.id,
@@ -37,6 +37,8 @@ public class ProductQueryRepository {
                 ))
                 .from(product)
                 .leftJoin(product.productPhotoId)
+                .leftJoin(product.productSelling)
+                .leftJoin(product.productBuying)
                 .orderBy(product.createdAt.desc())
                 .fetch();
     }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.product_buying.model.ProductBuying;
 import me.sallim.api.domain.product_photo.model.ProductPhoto;
 import me.sallim.api.domain.product_selling.model.ProductSelling;
 import org.springframework.data.annotation.CreatedDate;
@@ -68,6 +69,9 @@ public class Product {
 
     @OneToOne(mappedBy = "product")
     private ProductSelling productSelling;
+
+    @OneToOne(mappedBy = "product")
+    private ProductBuying productBuying;
 
     public void updateProductInfo(String title, String content, ApplianceType applianceType, boolean isActive) {
         this.title = title;
