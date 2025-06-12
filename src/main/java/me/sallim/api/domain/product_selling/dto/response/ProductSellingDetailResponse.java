@@ -11,6 +11,7 @@ import java.util.List;
 
 @Builder
 public record ProductSellingDetailResponse(
+        Long id,
         String title,
         String content,
         boolean isActive,
@@ -26,6 +27,7 @@ public record ProductSellingDetailResponse(
 ) {
     public static ProductSellingDetailResponse from(ProductSelling selling, Product product, List<ProductSellingAnswer> answers) {
         return ProductSellingDetailResponse.builder()
+                .id(product.getId())
                 .title(product.getTitle())
                 .content(product.getContent())
                 .isActive(product.getIsActive())

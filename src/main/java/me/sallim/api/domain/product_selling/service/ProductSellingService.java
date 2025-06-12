@@ -94,6 +94,7 @@ public class ProductSellingService {
         }
 
         return ProductSellingDetailResponse.builder()
+                .id(product.getId())
                 .title(product.getTitle())
                 .content(product.getContent())
                 .isActive(product.getIsActive())

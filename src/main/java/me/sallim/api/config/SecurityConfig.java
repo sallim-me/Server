@@ -75,9 +75,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    private String[] getPermittedPaths() {        List<String> paths = new ArrayList<>(Arrays.asList(
+    }    private String[] getPermittedPaths() {        List<String> paths = new ArrayList<>(Arrays.asList(
                 "/crawler/**",
                 "/auth/**",
                 "/member/profile",
@@ -95,6 +93,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/v3/api-docs**",
                     "/swagger-resources/**",
+                    "/ai/**",  // AI 이미지 분석 API
                     "/webjars/**"
             ));
         }
