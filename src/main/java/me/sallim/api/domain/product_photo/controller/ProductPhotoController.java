@@ -60,7 +60,7 @@ public class ProductPhotoController {
     public ResponseEntity<ProductPhotoResponse> uploadPhoto(
             @Parameter(description = "상품 ID") @PathVariable Long productId,
             @Parameter(description = "업로드할 이미지 파일") @RequestPart("file") MultipartFile file) {
-        ProductPhotoResponse response = productPhotoService.uploadPhoto(productId, file);
+        ProductPhotoResponse response = productPhotoService.uploadPhotoAndGetResponse(productId, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

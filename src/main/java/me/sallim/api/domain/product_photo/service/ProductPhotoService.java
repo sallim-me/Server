@@ -38,8 +38,15 @@ public class ProductPhotoService {
     @Value("${spring.minio.endpoint}")
     private String endpoint;
 
+    /**
+     * 제품 사진을 업로드합니다.
+     *
+     * @param productId 제품 ID
+     * @param file 업로드할 파일
+     * @return 업로드된 사진 엔티티
+     */
     @Transactional
-    public ProductPhotoResponse uploadPhoto(Long productId, MultipartFile file) {
+    public ProductPhoto uploadPhoto(Long productId, MultipartFile file) {
         try {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
@@ -91,13 +98,24 @@ public class ProductPhotoService {
                     .fileSize(file.getSize())
                     .build();
 
-            productPhotoRepository.save(productPhoto);
-
-            return convertToResponse(productPhoto);
+            return productPhotoRepository.save(productPhoto);
         } catch (IOException e) {
             log.error("Failed to upload file", e);
             throw new RuntimeException("Failed to upload file: " + e.getMessage());
         }
+    }
+
+    /**
+     * 제품 사진을 업로드하고 응답 DTO를 반환합니다.
+     *
+     * @param productId 제품 ID
+     * @param file 업로드할 파일
+     * @return 업로드된 사진 응답 DTO
+     */
+    @Transactional
+    public ProductPhotoResponse uploadPhotoAndGetResponse(Long productId, MultipartFile file) {
+        ProductPhoto photo = uploadPhoto(productId, file);
+        return convertToResponse(photo);
     }
 
     @Transactional(readOnly = true)
@@ -111,52 +129,63 @@ public class ProductPhotoService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 특정 제품의 특정 사진을 조회합니다.
+     *
+     * @param productId 제품 ID
+     * @param photoId 사진 ID
+     * @return 사진 응답 DTO
+     */
     @Transactional(readOnly = true)
     public ProductPhotoResponse getPhotoById(Long productId, Long photoId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
 
-        ProductPhoto photo = productPhotoRepository.findByProductAndId(product, photoId)
+        ProductPhoto photo = productPhotoRepository.findById(photoId)
                 .orElseThrow(() -> new IllegalArgumentException("Photo not found with id: " + photoId));
+
+        // 제품과 사진의 연관관계 확인
+        if (!photo.getProduct().getId().equals(product.getId())) {
+            throw new IllegalArgumentException("Photo " + photoId + " does not belong to Product " + productId);
+        }
 
         return convertToResponse(photo);
     }
 
+    /**
+     * 특정 제품의 특정 사진을 새로운 사진으로 업데이트합니다.
+     *
+     * @param productId 제품 ID
+     * @param photoId 사진 ID
+     * @param file 새로 업로드할 파일
+     * @return 업데이트된 사진 응답 DTO
+     */
     @Transactional
-    public void deletePhoto(Long productId, Long photoId) {
+    public ProductPhotoResponse updatePhoto(Long productId, Long photoId, MultipartFile file) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
 
-        ProductPhoto photo = productPhotoRepository.findByProductAndId(product, photoId)
+        ProductPhoto existingPhoto = productPhotoRepository.findById(photoId)
                 .orElseThrow(() -> new IllegalArgumentException("Photo not found with id: " + photoId));
 
-        // Delete from MinIO
-        s3Client.deleteObject(DeleteObjectRequest.builder()
-                .bucket(bucket)
-                .key(photo.getFileName())
-                .build());
+        // 제품과 사진의 연관관계 확인
+        if (!existingPhoto.getProduct().getId().equals(product.getId())) {
+            throw new IllegalArgumentException("Photo " + photoId + " does not belong to Product " + productId);
+        }
 
-        // Delete from database
-        productPhotoRepository.delete(photo);
-    }
-
-    @Transactional
-    public ProductPhotoResponse updatePhoto(Long productId, Long photoId, MultipartFile file) {
         try {
-            // First delete the old photo
-            Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
+            // S3에서 기존 파일 삭제
+            try {
+                s3Client.deleteObject(DeleteObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(existingPhoto.getFileName())
+                        .build());
+                log.info("Deleted existing file from S3: {}", existingPhoto.getFileName());
+            } catch (Exception e) {
+                log.warn("Failed to delete existing file from S3: {}", e.getMessage());
+            }
 
-            ProductPhoto photo = productPhotoRepository.findByProductAndId(product, photoId)
-                    .orElseThrow(() -> new IllegalArgumentException("Photo not found with id: " + photoId));
-
-            // Delete old file from MinIO
-            s3Client.deleteObject(DeleteObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(photo.getFileName())
-                    .build());
-
-            // Upload new file
+            // 새 파일 업로드 준비
             String originalFilename = file.getOriginalFilename();
             String extension = getFileExtension(originalFilename);
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -167,64 +196,89 @@ public class ProductPhotoService {
                 contentType = "application/octet-stream";
             }
 
-            // Upload to MinIO with PUBLIC_READ access
-            try {
-                s3Client.putObject(PutObjectRequest.builder()
-                                .bucket(bucket)
-                                .key(fileName)
-                                .contentType(contentType)
-                                .acl("public-read") // 공개 읽기 권한 설정
-                                .build(),
-                        RequestBody.fromBytes(file.getBytes()));
-
-                log.info("File updated with public-read ACL");
-            } catch (Exception e) {
-                log.warn("Failed to set public-read ACL, uploading without ACL: {}", e.getMessage());
-                // ACL이 실패하면 ACL 없이 시도
-                s3Client.putObject(PutObjectRequest.builder()
-                                .bucket(bucket)
-                                .key(fileName)
-                                .contentType(contentType)
-                                .build(),
-                        RequestBody.fromBytes(file.getBytes()));
-            }
+            // S3에 새 파일 업로드
+            s3Client.putObject(PutObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(fileName)
+                            .contentType(contentType)
+                            .build(),
+                    RequestBody.fromBytes(file.getBytes()));
 
             // DB에는 파일 경로만 저장 (bucket/fileName)
             String fileKey = bucket + "/" + fileName;
 
-            log.info("Storing file key in DB: {}", fileKey);
-            log.info("Full URL would be: {}/{}", endpoint, fileKey);
+            // 기존 photo 엔티티 업데이트
+            existingPhoto.updatePhoto(
+                    fileName,
+                    fileKey,
+                    contentType,
+                    file.getSize()
+            );
 
-            // Update photo info in database
-            photo.updatePhoto(fileName, fileKey, contentType, file.getSize());
-
-            return convertToResponse(photo);
+            ProductPhoto updatedPhoto = productPhotoRepository.save(existingPhoto);
+            return convertToResponse(updatedPhoto);
         } catch (IOException e) {
             log.error("Failed to update file", e);
             throw new RuntimeException("Failed to update file: " + e.getMessage());
         }
     }
 
-    private String getFileExtension(String filename) {
-        if (filename == null || filename.lastIndexOf(".") == -1) {
+    /**
+     * 특정 제품의 특정 사진을 삭제합니다.
+     *
+     * @param productId 제품 ID
+     * @param photoId 사진 ID
+     */
+    @Transactional
+    public void deletePhoto(Long productId, Long photoId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
+
+        ProductPhoto photo = productPhotoRepository.findById(photoId)
+                .orElseThrow(() -> new IllegalArgumentException("Photo not found with id: " + photoId));
+
+        // 제품과 사진의 연관관계 확인
+        if (!photo.getProduct().getId().equals(product.getId())) {
+            throw new IllegalArgumentException("Photo " + photoId + " does not belong to Product " + productId);
+        }
+
+        // 썸네일로 설정된 사진인지 확인
+        if (product.getProductPhotoId() != null && product.getProductPhotoId().getId().equals(photoId)) {
+            // 썸네일로 설정된 사진인 경우, 썸네일 설정 제거
+            product.setProductPhotoId(null);
+            productRepository.save(product);
+        }
+
+        // S3에서 파일 삭제
+        try {
+            s3Client.deleteObject(DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(photo.getFileName())
+                    .build());
+            log.info("Deleted file from S3: {}", photo.getFileName());
+        } catch (Exception e) {
+            log.warn("Failed to delete file from S3: {}", e.getMessage());
+        }
+
+        // DB에서 정보 삭제
+        productPhotoRepository.delete(photo);
+    }
+
+    private String getFileExtension(String fileName) {
+        if (fileName == null || !fileName.contains(".")) {
             return "";
         }
-        return filename.substring(filename.lastIndexOf("."));
+        return fileName.substring(fileName.lastIndexOf("."));
     }
 
     private ProductPhotoResponse convertToResponse(ProductPhoto photo) {
-        // 응답할 때 endpoint를 붙여서 완전한 URL 생성
-        String fullUrl = endpoint + "/" + photo.getFileUrl();
-
         return ProductPhotoResponse.builder()
                 .id(photo.getId())
                 .productId(photo.getProduct().getId())
                 .fileName(photo.getFileName())
-                .fileUrl(fullUrl) // 완전한 URL 반환
+                .fileUrl(endpoint + "/" + photo.getFileUrl())
                 .contentType(photo.getContentType())
                 .fileSize(photo.getFileSize())
-                .createdAt(photo.getCreatedAt())
-                .updatedAt(photo.getUpdatedAt())
                 .build();
     }
 }

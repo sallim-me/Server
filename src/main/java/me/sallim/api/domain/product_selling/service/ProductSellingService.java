@@ -2,6 +2,8 @@ package me.sallim.api.domain.product_selling.service;
 
 import me.sallim.api.domain.appliance_type_question.model.ApplianceType;
 import me.sallim.api.domain.member.model.Member;
+import me.sallim.api.domain.product_photo.model.ProductPhoto;
+import me.sallim.api.domain.product_photo.service.ProductPhotoService;
 import me.sallim.api.domain.product_selling.dto.request.UpdateProductSellingRequest;
 import org.springframework.transaction.annotation.Transactional;
 import me.sallim.api.domain.appliance_type_question.repository.ApplianceTypeQuestionRepository;
@@ -20,6 +22,7 @@ import me.sallim.api.domain.appliance_type_question.model.ApplianceTypeQuestion;
 import me.sallim.api.domain.product_selling_answer.repository.ProductSellingAnswerRepository;
 import me.sallim.api.domain.product_selling_answer.dto.response.ProductSellingAnswerResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +40,10 @@ public class ProductSellingService {
     private final ApplianceTypeQuestionRepository applianceTypeQuestionRepository;
     private final ProductSellingAnswerRepository productSellingAnswerRepository;
     private final ApplianceTypeQuestionRepository questionRepository;
+    private final ProductPhotoService productPhotoService;
 
     @Transactional
-    public ProductSellingDetailResponse createSellingProduct(Member member, CreateProductSellingRequest request) {
+    public ProductSellingDetailResponse createSellingProduct(Member member, CreateProductSellingRequest request, List<MultipartFile> photos) {
         // 1. Product 저장
         Product product = Product.builder()
                 .member(member)
@@ -74,7 +78,33 @@ public class ProductSellingService {
         }
         productSellingAnswerRepository.saveAll(answers);
 
-        // 4. 응답 DTO 반환
+        // 4. 사진 업로드 및 썸네일 설정
+        if (photos != null && !photos.isEmpty()) {
+            // 첫 번째 사진을 썸네일로 설정
+            MultipartFile thumbnailFile = photos.get(0);
+            ProductPhoto thumbnailPhoto = null;
+
+            // 모든 사진 업로드
+            for (MultipartFile photo : photos) {
+                if (photo != null && !photo.isEmpty()) {
+                    // ProductPhotoService를 통해 사진 업로드
+                    ProductPhoto uploadedPhoto = productPhotoService.uploadPhoto(product.getId(), photo);
+
+                    // 첫 번째 사진이라면 썸네일로 설정
+                    if (photo == thumbnailFile) {
+                        thumbnailPhoto = uploadedPhoto;
+                    }
+                }
+            }
+
+            // 썸네일 설정
+            if (thumbnailPhoto != null) {
+                product.setProductPhotoId(thumbnailPhoto);
+                productRepository.save(product);
+            }
+        }
+
+        // 5. 응답 DTO 반환
         return ProductSellingDetailResponse.from(selling, product, answers);
     }
 

@@ -8,16 +8,26 @@ import me.sallim.api.domain.product_selling.dto.response.ProductSellingDetailRes
 import me.sallim.api.domain.product_selling.dto.response.ProductSellingSummaryResponse;
 import me.sallim.api.domain.product_selling.service.ProductSellingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.sallim.api.global.annotation.LoginMember;
 import me.sallim.api.global.response.ApiResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/product/selling")
 @RequiredArgsConstructor
+@Slf4j
 public class ProductSellingController {
 
     private final ProductSellingService productSellingService;
@@ -28,6 +38,8 @@ public class ProductSellingController {
         판매 회원이 새로운 판매 글을 작성합니다. 글 작성 시 제품 정보와 고정 질문에 대한 답변도 함께 제출됩니다.
 
         제품 종류별로 3개의 고정 질문이 db에 존재하며, 이에 대한 답변을 함께 전송해야 합니다.
+        
+        사진도 함께 업로드할 수 있으며, 사진이 있을 경우 첫 번째 사진이 썸네일로 지정됩니다.
 
         ### 요청 예시:
         ```json
@@ -58,12 +70,37 @@ public class ProductSellingController {
         ```
         """
     )
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ProductSellingDetailResponse>> createSellingProduct(
             @LoginMember Member loginMember,
-            @RequestBody CreateProductSellingRequest request) {
-        ProductSellingDetailResponse detail = productSellingService.createSellingProduct(loginMember, request);
-        return ResponseEntity.ok(ApiResponse.success(detail));
+            @RequestPart(value = "request") String requestStr,
+//            @RequestPart(value = "request") CreateProductSellingRequest request,
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos) {
+        try {
+            // JSON 문자열을 객체로 변환
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            CreateProductSellingRequest request = objectMapper.readValue(requestStr, CreateProductSellingRequest.class);
+
+            log.info("판매글 작성 요청 - 사용자: {}, 제목: {}, 사진 개수: {}",
+                    loginMember != null ? loginMember.getId() : "비로그인",
+                    request.getTitle(),
+                    photos != null ? photos.size() : 0);
+
+            // 사진이 null인 경우 빈 리스트로 처리
+            List<MultipartFile> safePhotos = photos != null ? photos : Collections.emptyList();
+
+            ProductSellingDetailResponse detail = productSellingService.createSellingProduct(loginMember, request, safePhotos);
+            return ResponseEntity.ok(ApiResponse.success(detail));
+        } catch (JsonProcessingException e) {
+            log.error("JSON 파싱 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("BAD_REQUEST", "요청 형식이 올바르지 않습니다: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("판매글 작성 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("INTERNAL_SERVER_ERROR", "판매글 작성 중 오류가 발생했습니다: " + e.getMessage()));
+        }
     }
 
 
