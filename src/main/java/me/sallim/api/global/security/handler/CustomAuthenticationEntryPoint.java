@@ -23,7 +23,11 @@ import java.io.IOException;
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public CustomAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
@@ -34,25 +38,36 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         
         String errorCode;
         String message;
-        
+        HttpStatus httpStatus;
+
         if (exception instanceof JwtTokenMissingException) {
             errorCode = "TOKEN_MISSING";
             message = "JWT 토큰이 요청에 포함되지 않았습니다";
+            httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (exception instanceof JwtTokenExpiredException) {
             errorCode = "TOKEN_EXPIRED";
             message = "JWT 토큰이 만료되었습니다";
+            httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (exception instanceof JwtTokenInvalidException) {
             errorCode = "TOKEN_INVALID";
             message = "JWT 토큰이 유효하지 않습니다";
+            httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (exception instanceof MemberNotFoundException) {
             errorCode = "MEMBER_NOT_FOUND";
             message = "사용자를 찾을 수 없습니다";
+            httpStatus = HttpStatus.UNAUTHORIZED;
+        } else if (exception != null) {
+            // 내부 서버 오류인 경우
+            errorCode = "INTERNAL_SERVER_ERROR";
+            message = "서버 내부 오류가 발생했습니다";
+            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         } else {
             errorCode = "UNAUTHORIZED";
             message = "인증이 필요합니다";
+            httpStatus = HttpStatus.UNAUTHORIZED;
         }
         
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setStatus(httpStatus.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         

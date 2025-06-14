@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.product_photo.dto.ProductPhotoResponse;
 import me.sallim.api.domain.product_photo.service.ProductPhotoService;
+import me.sallim.api.global.response.ApiResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -107,10 +109,10 @@ public class ProductPhotoController {
             """
     )
     @GetMapping
-    public ResponseEntity<List<ProductPhotoResponse>> getPhotos(
+    public ResponseEntity<ApiResponse<List<ProductPhotoResponse>>> getPhotos(
             @Parameter(description = "상품 ID") @PathVariable Long productId) {
         List<ProductPhotoResponse> photos = productPhotoService.getPhotosByProductId(productId);
-        return ResponseEntity.ok(photos);
+        return ResponseEntity.ok(ApiResponse.success(photos));
     }
 
     @Operation(
@@ -144,11 +146,11 @@ public class ProductPhotoController {
             """
     )
     @GetMapping("/{photoId}")
-    public ResponseEntity<ProductPhotoResponse> getPhoto(
+    public ResponseEntity<ApiResponse<ProductPhotoResponse>> getPhoto(
             @Parameter(description = "상품 ID") @PathVariable Long productId,
             @Parameter(description = "사진 ID") @PathVariable Long photoId) {
         ProductPhotoResponse photo = productPhotoService.getPhotoById(productId, photoId);
-        return ResponseEntity.ok(photo);
+        return ResponseEntity.ok(ApiResponse.success(photo));
     }
 
     @Operation(

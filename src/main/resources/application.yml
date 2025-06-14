@@ -27,6 +27,13 @@ spring:
     secret: ${JWT_SECRET}
     access-token-validity-in-seconds: 2592000
     refresh-token-validity-in-seconds: 2592000
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd'T'HH:mm:ss
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   firebase:

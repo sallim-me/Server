@@ -25,6 +25,11 @@ public class ScrapResponse {
     private LocalDateTime createdAt;
 
     public static ScrapResponse from(Scrap scrap, String minioEndpoint) {
+        String thumbnailUrl = null;
+        if (scrap.getProduct().getProductPhotoId() != null) {
+            thumbnailUrl = minioEndpoint + "/" + scrap.getProduct().getProductPhotoId().getFileUrl();
+        }
+
         return ScrapResponse.builder()
                 .id(scrap.getId())
                 .memberId(scrap.getMember().getId())
@@ -37,7 +42,7 @@ public class ScrapResponse {
                                 : null
                 )
                 .productTitle(scrap.getProduct().getTitle())
-                .thumbnailUrl(minioEndpoint + "/" + scrap.getProduct().getProductPhotoId().getFileUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .memo(scrap.getMemo())
                 .createdAt(scrap.getCreatedAt())
                 .build();

@@ -38,9 +38,11 @@ public class ProductPhoto {
     private Long fileSize;
 
     @Column
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     public void updatePhoto(String fileName, String fileUrl, String contentType, Long fileSize) {
