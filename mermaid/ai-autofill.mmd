@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Frontend as React
+    participant Backend as Spring Boot
+    participant FastAPI as FastAPI
+    participant Gemini as Gemini API
+
+    Frontend->>+Backend: POST /ai/analyze-image
+    Note over Frontend,Backend: multipart/form-data<br/>file: MultipartFile
+
+    %% Backend->>Backend: 파일 유효성 검사
+    %% Note over Controller: file.isEmpty() 체크<br/>이미지 파일 타입 검사
+
+    Backend->>+FastAPI: analyzeProductImage(file, applyPreprocessing)
+    
+    FastAPI->>FastAPI: 이미지 전처리
+    Note over FastAPI: 1. 기울기 보정<br/>2. 노이즈 제거<br/>3. 이진화
+
+    FastAPI->>+Gemini: API 호출
+    %% Note over FastAPI,Gemini: 이미지 분석 요청<br/>상품 정보 추출 프롬프트
+
+    Gemini-->>-FastAPI: AI 분석 결과
+    Note over Gemini,FastAPI: 상품명, 카테고리, 모델코드,<br/>브랜드, 예상가격, 설명
+
+    FastAPI-->>-Backend: 분석 결과 응답
+
+    Backend-->>-Frontend: AIImageAnalysisResponse
