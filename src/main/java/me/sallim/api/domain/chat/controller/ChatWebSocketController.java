@@ -10,6 +10,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -22,6 +23,7 @@ public class ChatWebSocketController {
     private final ChatRoomService chatRoomService;
     private final NotificationService notificationService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat/room/{roomId}")
     public void sendMessage(@DestinationVariable Long roomId, 
@@ -52,6 +54,9 @@ public class ChatWebSocketController {
                     .content(messageDTO.getContent())
                     .createdAt(savedMessage.getCreatedAt())
                     .build();
+            
+            // 🔥 핵심: 실시간 WebSocket 브로드캐스트 (이 부분이 누락되어 있었음!)
+            messagingTemplate.convertAndSend("/topic/room/" + roomId, responseDTO);
             
             // Kafka로 메시지 전송 (선택적)
             kafkaTemplate.send("chat-messages", responseDTO);
