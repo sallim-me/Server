@@ -2,12 +2,17 @@ package me.sallim.api.config;
 
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.chat.handler.WebSocketHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -16,10 +21,32 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketHandler webSocketHandler;
 
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
+
+    @Value("${spring.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        List<String> origins =new ArrayList<>();
+
+        if ("dev".equals(activeProfile)) {
+            origins = new ArrayList<>(Arrays.asList(
+                    "http://localhost:3000", // React app local
+                    "http://127.0.0.1:3000", // React app local
+                    "http://localhost:8080", // API local
+                    "http://127.0.0.1:8080" // API local
+            ));
+            origins.addAll(Arrays.asList(allowedOrigins.split(","))); // Additional allowed origins
+        }
+        if ("prod".equals(activeProfile)) {
+            origins = new ArrayList<>(Arrays.asList(allowedOrigins.split(",")));
+        }
+
         registry.addEndpoint("/ws-chat")
-                .setAllowedOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+//                .setAllowedOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+                .setAllowedOrigins(origins.toArray(new String[0]))
                 .withSockJS();
     }
 
