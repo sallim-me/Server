@@ -2,12 +2,13 @@ package me.sallim.api.global.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import me.sallim.api.global.security.exception.JwtTokenExpiredException;
+import me.sallim.api.global.security.exception.JwtTokenInvalidException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.UUID;
 
 @Component
 public class JwtTokenProvider {
@@ -48,14 +49,27 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
-    }
-
-    public boolean validateToken(String token) {
+    }    public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
+        }
+    }
+
+    /**
+     * 토큰을 검증하고 실패 시 구체적인 예외를 발생시킵니다.
+     */
+    public void validateTokenWithException(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+        } catch (ExpiredJwtException e) {
+            throw new JwtTokenExpiredException("JWT 토큰이 만료되었습니다");
+        } catch (MalformedJwtException | io.jsonwebtoken.security.SignatureException | UnsupportedJwtException e) {
+            throw new JwtTokenInvalidException("JWT 토큰이 유효하지 않습니다: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new JwtTokenInvalidException("JWT 토큰이 비어있거나 잘못된 형식입니다");
         }
     }
 

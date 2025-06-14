@@ -2,6 +2,8 @@ package me.sallim.api.config;
 
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.member.repository.MemberRepository;
+import me.sallim.api.global.security.handler.CustomAccessDeniedHandler;
+import me.sallim.api.global.security.handler.CustomAuthenticationEntryPoint;
 import me.sallim.api.global.security.jwt.JwtAuthenticationFilter;
 import me.sallim.api.global.security.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +32,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-
     private final MemberRepository memberRepository;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Value("${spring.profiles.active:prod}")
     private String activeProfile;
@@ -58,7 +61,7 @@ public class SecurityConfig {
                     "http://localhost:3000", // React app local
                     "http://127.0.0.1:3000", // React app local
                     "http://localhost:8080", // API local
-                    "http://127.0.0.1:8080"  // API local
+                    "http://127.0.0.1:8080" // API local
             ));
             origins.addAll(Arrays.asList(allowedOrigins.split(","))); // Additional allowed origins
             configuration.setAllowedOrigins(origins);
@@ -75,15 +78,17 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }    private String[] getPermittedPaths() {        List<String> paths = new ArrayList<>(Arrays.asList(
-                "/crawler/**",
+    }
+
+    private String[] getPermittedPaths() {
+        List<String> paths = new ArrayList<>(Arrays.asList(                "/crawler/**",
                 "/auth/**",
                 "/member/profile",
                 "/health-check",
-                "/ws-chat/**",  // WebSocket endpoint
+                "/ws-chat/**", // WebSocket endpoint
                 "/product/all",
-                "/health-check"
-        ));
+                "/test/public", // 테스트용 공개 엔드포인트
+                "/health-check"));
 
         if ("dev".equals(activeProfile)) {
             paths.addAll(Arrays.asList(
@@ -93,32 +98,28 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/v3/api-docs**",
                     "/swagger-resources/**",
-                    "/ai/**",  // AI 이미지 분석 API
-                    "/webjars/**"
-            ));
+                    "/ai/**", // AI 이미지 분석 API
+                    "/webjars/**"));
         }
         return paths.toArray(new String[0]);
-    }
-
-    @Bean
+    }    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(getPermittedPaths()).permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider, memberRepository),
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
-
