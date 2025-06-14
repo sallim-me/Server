@@ -1,38 +1,54 @@
 package me.sallim.api.domain.chat.repository;
 
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import me.sallim.api.domain.chat.dto.response.ChatRoomResponse;
+import me.sallim.api.domain.chat.dto.response.ChatRoomWithUnreadCountResponse;
 import me.sallim.api.domain.chat.model.QChatMessage;
-import me.sallim.api.domain.chat.model.QChatRoomParticipant;
+import me.sallim.api.domain.chat.model.QChatRoom;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
-import static com.querydsl.core.types.Projections.constructor;
 
 @Repository
 @RequiredArgsConstructor
 public class ChatRoomQueryRepository {
     private final JPAQueryFactory queryFactory;
 
-    public List<ChatRoomResponse> findChatRoomsWithLastMessageByUserId(Long memberId) {
-        QChatRoomParticipant chatRoomParticipant = QChatRoomParticipant.chatRoomParticipant;
+    /**
+     * 사용자가 참여중인 채팅방을 최신 메시지 순으로 조회
+     * 읽지 않은 메시지 수도 함께 조회
+     */
+    public List<ChatRoomWithUnreadCountResponse> findByMemberIdWithUnreadCount(Long memberId) {
+        QChatRoom chatRoom = QChatRoom.chatRoom;
         QChatMessage chatMessage = QChatMessage.chatMessage;
-
+        QChatMessage latestMessage = new QChatMessage("latestMessage");
 
         return queryFactory
-                .select(constructor(
-                        ChatRoomResponse.class,
-                        chatRoomParticipant.chatRoomId,
-                        chatMessage.id,
-                        chatMessage.senderId,
-                        chatMessage.content,
-                        chatMessage.createdAt
+                .select(Projections.constructor(ChatRoomWithUnreadCountResponse.class,
+                        chatRoom.id,
+                        chatRoom.productId,
+                        chatRoom.sellerId,
+                        chatRoom.buyerId,
+                        chatRoom.latestChatMessageId,
+                        chatRoom.createdAt,
+                        // 읽지 않은 메시지 수
+                        JPAExpressions
+                                .select(chatMessage.count())
+                                .from(chatMessage)
+                                .where(chatMessage.chatRoomId.eq(chatRoom.id)
+                                        .and(chatMessage.isRead.eq(false))
+                                        .and(chatMessage.senderId.ne(memberId))),
+                        // 최신 메시지 내용
+                        latestMessage.content,
+                        // 최신 메시지 시간
+                        latestMessage.createdAt
                 ))
-                .from(chatRoomParticipant)
-                .leftJoin(chatMessage).on(chatRoomParticipant.lastReadChatMessageId.eq(chatMessage.id))
-                .where(chatRoomParticipant.memberId.eq(memberId))
+                .from(chatRoom)
+                .leftJoin(latestMessage).on(latestMessage.id.eq(chatRoom.latestChatMessageId))
+                .where(chatRoom.sellerId.eq(memberId).or(chatRoom.buyerId.eq(memberId)))
+                .orderBy(latestMessage.createdAt.desc().nullsLast())
                 .fetch();
     }
 }

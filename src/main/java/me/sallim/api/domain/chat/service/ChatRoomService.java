@@ -2,8 +2,10 @@ package me.sallim.api.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.chat.dto.response.ChatRoomResponse;
+import me.sallim.api.domain.chat.dto.response.ChatRoomWithUnreadCountResponse;
 import me.sallim.api.domain.chat.model.ChatRoom;
 import me.sallim.api.domain.chat.repository.ChatRoomRepository;
+import me.sallim.api.domain.chat.repository.ChatRoomQueryRepository;
 import me.sallim.api.domain.product.model.Product;
 import me.sallim.api.domain.product.repository.ProductRepository;
 import me.sallim.api.domain.product.repository.ProductQueryRepository;
@@ -19,6 +21,7 @@ import java.util.Optional;
 public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomQueryRepository chatRoomQueryRepository;
     private final ProductRepository productRepository;
     private final ProductQueryRepository productQueryRepository;
     private final MemberRepository memberRepository;
@@ -106,6 +109,11 @@ public class ChatRoomService {
                 .latestChatMessageId(savedChatRoom.getLatestChatMessageId())
                 .createdAt(savedChatRoom.getCreatedAt())
                 .build();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<ChatRoomWithUnreadCountResponse> getMyChatRoomsWithUnreadCount(Long memberId) {
+        return chatRoomQueryRepository.findByMemberIdWithUnreadCount(memberId);
     }
     
     @Transactional(readOnly = true)

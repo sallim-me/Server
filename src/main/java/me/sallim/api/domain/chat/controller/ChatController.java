@@ -6,6 +6,8 @@ import me.sallim.api.domain.chat.dto.ChatMessageDTO;
 import me.sallim.api.domain.chat.dto.request.CreateChatRoomRequest;
 import me.sallim.api.domain.chat.dto.request.SendMessageRequest;
 import me.sallim.api.domain.chat.dto.response.ChatMessageResponse;
+import me.sallim.api.domain.chat.dto.response.ChatRoomStatusResponse;
+import me.sallim.api.domain.chat.dto.response.ChatRoomWithUnreadCountResponse;
 import me.sallim.api.domain.chat.dto.response.ReceiveMessageDTO;
 import me.sallim.api.domain.chat.dto.response.ChatRoomResponse;
 import me.sallim.api.domain.chat.model.ChatMessage;
@@ -13,6 +15,7 @@ import me.sallim.api.domain.chat.model.ChatRoom;
 import me.sallim.api.domain.chat.service.ChatMessageService;
 import me.sallim.api.domain.chat.service.ChatRoomParticipantService;
 import me.sallim.api.domain.chat.service.ChatRoomService;
+import me.sallim.api.domain.chat.service.ChatRoomSessionService;
 import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.global.annotation.LoginMember;
 import me.sallim.api.global.response.ApiResponse;
@@ -33,6 +36,7 @@ public class ChatController {
     private final ChatRoomService chatRoomService;
     private final ChatMessageService chatMessageService;
     private final ChatRoomParticipantService chatRoomParticipantService;
+    private final ChatRoomSessionService chatRoomSessionService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -67,27 +71,30 @@ public class ChatController {
 
     @GetMapping("/rooms")
     @Operation(
-        summary = "채팅방 목록 조회",
+        summary = "채팅방 목록 조회 (개선)",
         description = """
-            로그인한 사용자가 참여 중인 모든 채팅방을 조회합니다.
+            로그인한 사용자가 참여 중인 모든 채팅방을 최신 메시지 순으로 조회합니다.
+            읽지 않은 메시지 수와 최신 메시지 정보도 함께 제공됩니다.
             ### 응답 예시:
             ```json
             [
                 {
                     "id": 1,
                     "productId": 1,
+                    "sellerId": 2,
+                    "buyerId": 3,
                     "latestChatMessageId": 5,
-                    "createdAt": "2024-03-20T15:30:00"
+                    "createdAt": "2024-03-20T15:30:00",
+                    "unreadCount": 3,
+                    "latestMessage": "안녕하세요!",
+                    "latestMessageTime": "2024-03-20T16:45:00"
                 }
             ]
             ```
             """
     )
-    public ResponseEntity<ApiResponse<List<ChatRoomResponse>>> getChatRooms(@LoginMember Member member) {
-        List<ChatRoom> chatRooms = chatRoomService.getChatRoomsByMemberId(member.getId());
-        List<ChatRoomResponse> responses = chatRooms.stream()
-                .map(ChatRoomResponse::from)
-                .collect(Collectors.toList());
+    public ResponseEntity<ApiResponse<List<ChatRoomWithUnreadCountResponse>>> getChatRooms(@LoginMember Member member) {
+        List<ChatRoomWithUnreadCountResponse> responses = chatRoomService.getMyChatRoomsWithUnreadCount(member.getId());
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
@@ -288,5 +295,89 @@ public class ChatController {
         }
         
         return ResponseEntity.ok(ApiResponse.success("읽음 처리 완료"));
+    }
+
+    @PostMapping("/rooms/{roomId}/read")
+    @Operation(
+        summary = "메시지 읽음 처리",
+        description = """
+            특정 채팅방의 읽지 않은 메시지들을 모두 읽음 처리합니다.
+            ### Path Variable:
+            - `roomId` : 채팅방 ID
+            ### 응답 예시:
+            ```json
+            {
+                "success": true,
+                "message": "메시지 읽음 처리가 완료되었습니다.",
+                "data": null
+            }
+            ```
+            """
+    )
+    public ResponseEntity<ApiResponse<String>> markMessagesAsRead(
+            @PathVariable Long roomId,
+            @LoginMember Member member) {
+        
+        chatMessageService.markMessagesAsRead(roomId, member.getId());
+        return ResponseEntity.ok(ApiResponse.success("메시지 읽음 처리가 완료되었습니다."));
+    }
+
+    @PostMapping("/rooms/{roomId}/enter")
+    @Operation(
+        summary = "채팅방 입장",
+        description = "채팅방에 입장하여 실시간 메시지를 받을 준비를 합니다."
+    )
+    public ResponseEntity<ApiResponse<String>> enterChatRoom(
+            @PathVariable Long roomId,
+            @LoginMember Member member) {
+        
+        // 채팅방 입장 상태 업데이트
+        chatRoomSessionService.refreshUserInChatRoom(roomId, member.getId());
+        
+        return ResponseEntity.ok(ApiResponse.success("채팅방에 입장했습니다."));
+    }
+
+    @PostMapping("/rooms/{roomId}/exit")
+    @Operation(
+        summary = "채팅방 퇴장",
+        description = "채팅방에서 퇴장합니다."
+    )
+    public ResponseEntity<ApiResponse<String>> exitChatRoom(
+            @PathVariable Long roomId,
+            @LoginMember Member member) {
+        
+        // 채팅방 퇴장 상태 업데이트
+        chatRoomSessionService.removeUserFromChatRoom(roomId, member.getId());
+        
+        return ResponseEntity.ok(ApiResponse.success("채팅방에서 퇴장했습니다."));
+    }
+
+    @GetMapping("/rooms/{roomId}/status")
+    @Operation(
+        summary = "채팅방 상태 조회",
+        description = """
+            채팅방의 현재 상태를 조회합니다.
+            - 상대방 온라인 여부
+            - 상대방 채팅방 입장 여부
+            - 읽지 않은 메시지 수
+            """
+    )
+    public ResponseEntity<ApiResponse<ChatRoomStatusResponse>> getChatRoomStatus(
+            @PathVariable Long roomId,
+            @LoginMember Member member) {
+        
+        // 상대방 ID 조회
+        Long otherParticipantId = chatRoomService.getOtherParticipantId(roomId, member.getId());
+        
+        // 상태 정보 조회
+        ChatRoomStatusResponse status = ChatRoomStatusResponse.builder()
+                .chatRoomId(roomId)
+                .otherParticipantId(otherParticipantId)
+                .isOtherParticipantOnline(chatMessageService.isReceiverOnline(otherParticipantId))
+                .isOtherParticipantInRoom(chatMessageService.isReceiverInChatRoom(roomId, otherParticipantId))
+                .unreadMessageCount(chatMessageService.getUnreadMessageCount(roomId, member.getId()))
+                .build();
+        
+        return ResponseEntity.ok(ApiResponse.success(status));
     }
 }

@@ -3,10 +3,12 @@ package me.sallim.api.domain.chat.controller;
 import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.chat.dto.response.ChatRoomResponse;
 import me.sallim.api.domain.chat.service.ChatRoomService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Profile("chat")
 @RestController
 @RequestMapping("/api/chat-rooms")
 @RequiredArgsConstructor

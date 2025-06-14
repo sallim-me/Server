@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.chat.dto.ChatMessageDTO;
 import me.sallim.api.domain.chat.model.ChatMessage;
 import me.sallim.api.domain.chat.service.ChatMessageService;
-import me.sallim.api.domain.chat.service.ChatNotificationService;
+import me.sallim.api.domain.chat.service.NotificationService;
 import me.sallim.api.domain.chat.service.ChatRoomService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -20,7 +20,7 @@ public class ChatWebSocketController {
 
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
-    private final ChatNotificationService chatNotificationService;
+    private final NotificationService notificationService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @MessageMapping("/chat/room/{roomId}")
@@ -57,17 +57,11 @@ public class ChatWebSocketController {
             kafkaTemplate.send("chat-messages", responseDTO);
             
             // 알림 서비스를 통한 실시간 메시지 전송
-            chatNotificationService.notifyNewMessage(roomId, responseDTO);
-            
-            // 상대방에게 읽지 않은 메시지 수 알림
-            chatNotificationService.notifyUnreadCount(receiverId, roomId);
+            notificationService.sendChatNotification(savedMessage);
             
         } catch (Exception e) {
-            // 에러 처리
-            if (principal != null) {
-                Long senderId = Long.valueOf(principal.getName());
-                chatNotificationService.notifyError(senderId, "메시지 전송 실패: " + e.getMessage());
-            }
+            // 에러 처리 로깅
+            System.err.println("메시지 전송 실패: " + e.getMessage());
         }
     }
 }

@@ -54,12 +54,39 @@ public class WebSocketHandler implements ChannelInterceptor {
                         }
                     }
                 }
+            } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+                // 채팅방 구독 (입장) 처리
+                Principal user = accessor.getUser();
+                if (user != null) {
+                    String destination = accessor.getDestination();
+                    if (destination != null && destination.startsWith("/topic/chatroom/")) {
+                        String chatRoomId = destination.replace("/topic/chatroom/", "");
+                        String userId = user.getName();
+                        
+                        // Redis에 채팅방 입장 상태 저장
+                        String chatRoomUserKey = "chatroom:" + chatRoomId + ":user:" + userId;
+                        redisTemplate.opsForValue().set(chatRoomUserKey, "active", 30, TimeUnit.MINUTES);
+                    }
+                }
+            } else if (StompCommand.UNSUBSCRIBE.equals(accessor.getCommand())) {
+                // 채팅방 구독 해제 (퇴장) 처리
+                Principal user = accessor.getUser();
+                if (user != null) {
+                    String userId = user.getName();
+                    // 모든 채팅방에서 해당 사용자 제거
+                    String pattern = "chatroom:*:user:" + userId;
+                    redisTemplate.delete(redisTemplate.keys(pattern));
+                }
             } else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
                 Principal user = accessor.getUser();
                 if (user != null) {
                     String userId = user.getName();
                     String userKey = "user:" + userId + ":connected";
                     redisTemplate.delete(userKey);
+                    
+                    // 모든 채팅방에서 해당 사용자 제거
+                    String pattern = "chatroom:*:user:" + userId;
+                    redisTemplate.delete(redisTemplate.keys(pattern));
                 }
             }
         }
