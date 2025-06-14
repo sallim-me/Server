@@ -11,6 +11,7 @@ public class MemberConverter {
 
     public static MemberInfoResponseDTO toMemberInfo(Member member) {
         return new MemberInfoResponseDTO(
+                member.getId(),
                 member.getUsername(),
                 member.getName(),
                 member.getNickname(),

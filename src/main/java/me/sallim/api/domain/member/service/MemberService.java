@@ -10,6 +10,7 @@ import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.member.repository.MemberRepository;
 import me.sallim.api.domain.product.model.Product;
 import me.sallim.api.domain.product.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,9 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProductRepository productRepository;
+
+    @Value("${spring.minio.endpoint}")
+    private String minioEndpoint;
 
     public Long join(MemberJoinRequestDTO request) {
         if (memberRepository.findByUsername(request.username()).isPresent()) {
@@ -59,7 +63,7 @@ public class MemberService {
     public List<MemberPostSummaryResponse> getMyPosts(Member loginMember) {
         List<Product> products = productRepository.findByMember(loginMember);
         return products.stream()
-                .map(MemberPostSummaryResponse::from)
+                .map(product -> MemberPostSummaryResponse.from(product, minioEndpoint))
                 .collect(Collectors.toList());
     }
 

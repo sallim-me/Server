@@ -1,9 +1,6 @@
 package me.sallim.api.domain.product_scrap.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import me.sallim.api.domain.product.model.PostTypeEnum;
 import me.sallim.api.domain.product_scrap.model.Scrap;
 
@@ -13,6 +10,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class ScrapResponse {
     private Long id;
     private Long memberId;
@@ -21,10 +20,11 @@ public class ScrapResponse {
     private PostTypeEnum postType;
     private Integer productPrice;
     private String productTitle;
+    private String thumbnailUrl;
     private String memo;
     private LocalDateTime createdAt;
 
-    public static ScrapResponse from(Scrap scrap) {
+    public static ScrapResponse from(Scrap scrap, String minioEndpoint) {
         return ScrapResponse.builder()
                 .id(scrap.getId())
                 .memberId(scrap.getMember().getId())
@@ -37,6 +37,7 @@ public class ScrapResponse {
                                 : null
                 )
                 .productTitle(scrap.getProduct().getTitle())
+                .thumbnailUrl(minioEndpoint + "/" + scrap.getProduct().getProductPhotoId().getFileUrl())
                 .memo(scrap.getMemo())
                 .createdAt(scrap.getCreatedAt())
                 .build();

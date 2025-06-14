@@ -11,6 +11,7 @@ import me.sallim.api.domain.product_scrap.dto.response.ScrapListResponse;
 import me.sallim.api.domain.product_scrap.dto.response.ScrapResponse;
 import me.sallim.api.domain.product_scrap.model.Scrap;
 import me.sallim.api.domain.product_scrap.repository.ScrapRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ScrapService {
+
+    @Value("${spring.minio.endpoint}")
+    private String minioEndpoint;
 
     private final ScrapRepository scrapRepository;
     private final MemberRepository memberRepository;
@@ -45,7 +49,7 @@ public class ScrapService {
                 .memo(requestDto.getMemo())
                 .build();
 
-        return ScrapResponse.from(scrapRepository.save(scrap));
+        return ScrapResponse.from(scrapRepository.save(scrap), minioEndpoint);
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +59,7 @@ public class ScrapService {
         }
 
         Page<ScrapResponse> scrapPage = scrapRepository.findByMemberId(memberId, pageable)
-                .map(ScrapResponse::from);
+                .map(scrap -> ScrapResponse.from(scrap, minioEndpoint));
 
         return ScrapListResponse.from(scrapPage);
     }
@@ -105,7 +109,7 @@ public class ScrapService {
         }
 
         scrap.updateMemo(memo);
-        return ScrapResponse.from(scrap);
+        return ScrapResponse.from(scrap, minioEndpoint);
     }
 
     @Transactional(readOnly = true)
