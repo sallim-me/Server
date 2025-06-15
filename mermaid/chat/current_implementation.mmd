@@ -1,0 +1,94 @@
+sequenceDiagram
+    autonumber
+    participant FE_A as 프론트엔드 A<br/>(사용자 A)
+    participant FE_B as 프론트엔드 B<br/>(사용자 B)
+    participant SPRING as Spring Boot<br/>(WebSocket Controller)
+    participant KAFKA as Kafka Broker
+    participant LISTENER as Kafka Listener<br/>(Consumer)
+    participant REDIS as Redis<br/>(세션 관리)
+    participant DB as MySQL<br/>(메시지 저장)
+    participant FCM as Firebase FCM<br/>(푸시 알림)
+
+    %% 사용자 B 채팅방 입장
+    note over FE_B, DB: 사용자 B 채팅방 입장 과정
+    FE_B->>SPRING: POST /chat/rooms/{roomId}/enter
+    SPRING->>REDIS: 사용자 B 세션 등록
+    SPRING-->>FE_B: 입장 성공 응답
+    
+    FE_B->>SPRING: WebSocket 연결 (ws://localhost:8080/ws-chat)
+    note right of FE_B: JWT 토큰으로 인증
+    SPRING-->>FE_B: WebSocket 연결 성공
+    
+    FE_B->>SPRING: 구독 (/topic/room/{roomId})
+    SPRING-->>FE_B: 구독 성공
+
+    FE_B->>SPRING: GET /chat/rooms/{roomId}/messages
+    SPRING->>DB: 기존 메시지 조회
+    DB-->>SPRING: 메시지 목록
+    SPRING-->>FE_B: 메시지 목록 응답
+
+    %% 사용자 A 채팅방 입장 (동일한 과정)
+    note over FE_A, DB: 사용자 A 채팅방 입장 과정
+    FE_A->>SPRING: POST /chat/rooms/{roomId}/enter
+    SPRING->>REDIS: 사용자 A 세션 등록
+    SPRING-->>FE_A: 입장 성공 응답
+    
+    FE_A->>SPRING: WebSocket 연결
+    SPRING-->>FE_A: WebSocket 연결 성공
+    
+    FE_A->>SPRING: 구독 (/topic/room/{roomId})
+    SPRING-->>FE_A: 구독 성공
+
+    %% 실시간 메시지 전송 (핵심 플로우)
+    note over FE_A, FCM: 🔥 실시간 메시지 전송 과정 (새로 수정된 부분)
+    FE_A->>SPRING: WebSocket 메시지 전송<br/>(/app/chat/room/{roomId})
+    note right of FE_A: { "content": "안녕하세요!" }
+    
+    activate SPRING
+    SPRING->>DB: 메시지 저장 (senderId, receiverId, content)
+    DB-->>SPRING: 메시지 ID 반환
+    
+    SPRING->>SPRING: ChatMessageDTO 생성
+    note right of SPRING: id, chatRoomId, senderId,<br/>receiverId, content, createdAt
+    
+    %% 🔥 핵심: 실시간 브로드캐스트 (새로 추가된 부분)
+    rect rgb(255, 200, 200)
+        SPRING->>FE_A: 실시간 브로드캐스트<br/>(/topic/room/{roomId})
+        SPRING->>FE_B: 실시간 브로드캐스트<br/>(/topic/room/{roomId})
+        note over SPRING: messagingTemplate.convertAndSend()<br/>로 모든 구독자에게 전송
+    end
+    
+    SPRING->>KAFKA: Kafka 메시지 전송 (선택적)
+    note right of SPRING: kafkaTemplate.send("chat-messages")
+    
+    SPRING->>SPRING: 알림 서비스 호출
+    deactivate SPRING
+
+    %% 프론트엔드에서 메시지 수신
+    note over FE_A, FE_B: 실시간 메시지 수신 처리
+    FE_A-->>FE_A: 내가 보낸 메시지<br/>화면에 표시
+    FE_B-->>FE_B: 실시간으로 메시지<br/>화면에 표시
+
+    %% Kafka 백그라운드 처리 (비동기)
+    note over KAFKA, FCM: 백그라운드 알림 처리 (비동기)
+    KAFKA-->>LISTENER: ChatMessageDTO 수신
+    
+    activate LISTENER
+    LISTENER->>REDIS: 사용자 B 온라인 상태 확인
+    
+    alt 사용자 B 오프라인
+        LISTENER->>FCM: 푸시 알림 전송
+        FCM-->>FE_B: 모바일 알림 표시
+    else 사용자 B 온라인이지만 채팅방 밖
+        LISTENER->>FCM: 채팅방 알림 전송
+        FCM-->>FE_B: 인앱 알림 표시
+    else 사용자 B 채팅방 안
+        note right of LISTENER: 이미 실시간으로 받았으므로<br/>추가 알림 불필요
+    end
+    deactivate LISTENER
+
+    %% 메시지 읽음 처리
+    note over FE_B, DB: 메시지 읽음 처리
+    FE_B->>SPRING: PUT /chat/rooms/{roomId}/read
+    SPRING->>DB: 읽음 상태 업데이트
+    SPRING-->>FE_B: 읽음 처리 완료

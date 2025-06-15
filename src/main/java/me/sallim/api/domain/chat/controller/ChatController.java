@@ -288,11 +288,11 @@ public class ChatController {
         chatMessageService.markMessagesAsRead(roomId, member.getId());
         
         // 마지막 읽은 메시지 업데이트 (최신 메시지 ID 사용)
-        List<ChatMessage> messages = chatMessageService.getMessages(roomId);
-        if (!messages.isEmpty()) {
-            Long latestMessageId = messages.get(0).getId(); // DESC 정렬이므로 첫 번째가 최신
-            chatRoomParticipantService.updateLastReadMessage(roomId, member.getId(), latestMessageId);
-        }
+//        List<ChatMessage> messages = chatMessageService.getMessages(roomId);
+//        if (!messages.isEmpty()) {
+//            Long latestMessageId = messages.get(0).getId(); // DESC 정렬이므로 첫 번째가 최신
+//            chatRoomParticipantService.updateLastReadMessage(roomId, member.getId(), latestMessageId);
+//        }
         
         return ResponseEntity.ok(ApiResponse.success("읽음 처리 완료"));
     }
@@ -372,6 +372,9 @@ public class ChatController {
         // 상태 정보 조회
         ChatRoomStatusResponse status = ChatRoomStatusResponse.builder()
                 .chatRoomId(roomId)
+                .productType(chatRoomService.getProductTypeByChatRoomId(roomId))
+                .productId(chatRoomService.getProductIdByChatRoomId(roomId))
+                .productTitle(chatRoomService.getProductTitleByChatRoomId(roomId))
                 .otherParticipantId(otherParticipantId)
                 .isOtherParticipantOnline(chatMessageService.isReceiverOnline(otherParticipantId))
                 .isOtherParticipantInRoom(chatMessageService.isReceiverInChatRoom(roomId, otherParticipantId))

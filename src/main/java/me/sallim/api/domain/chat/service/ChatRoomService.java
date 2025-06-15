@@ -33,6 +33,24 @@ public class ChatRoomService {
     }
 
     @Transactional(readOnly = true)
+    public Long getProductIdByChatRoomId(Long chatRoomId) {
+        return chatRoomRepository.findProductIdByChatRoomId(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public String getProductTitleByChatRoomId(Long chatRoomId) {
+        return chatRoomRepository.findProductTitleByChatRoomId(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public String getProductTypeByChatRoomId(Long chatRoomId) {
+        return chatRoomRepository.findProductTypeByChatRoomId(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
+    }
+
+    @Transactional(readOnly = true)
     public List<ChatRoom> getChatRoomsByMemberId(Long memberId) {
         return chatRoomRepository.findByMemberId(memberId);
     }

@@ -14,7 +14,9 @@ import java.time.LocalDateTime;
 public class ChatRoomWithUnreadCountResponse {
     private Long id;
     private Long productId;
+    private String productTitle;
     private Long sellerId;
+    private String otherUserNickname; // Changed from Long to String
     private Long buyerId;
     private Long latestChatMessageId;
     private LocalDateTime createdAt;

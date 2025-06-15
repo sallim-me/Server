@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import me.sallim.api.domain.chat.dto.response.ChatRoomWithUnreadCountResponse;
 import me.sallim.api.domain.chat.model.QChatMessage;
 import me.sallim.api.domain.chat.model.QChatRoom;
+import me.sallim.api.domain.member.model.QMember;
+import me.sallim.api.domain.product.model.QProduct;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,13 +25,25 @@ public class ChatRoomQueryRepository {
     public List<ChatRoomWithUnreadCountResponse> findByMemberIdWithUnreadCount(Long memberId) {
         QChatRoom chatRoom = QChatRoom.chatRoom;
         QChatMessage chatMessage = QChatMessage.chatMessage;
+        QMember member = QMember.member;
+        QProduct product = QProduct.product;
         QChatMessage latestMessage = new QChatMessage("latestMessage");
 
         return queryFactory
                 .select(Projections.constructor(ChatRoomWithUnreadCountResponse.class,
                         chatRoom.id,
                         chatRoom.productId,
+                        JPAExpressions
+                                .select(product.title)
+                                .from(product)
+                                .where(product.id.eq(chatRoom.productId)),
                         chatRoom.sellerId,
+                        JPAExpressions
+                                .select(member.nickname)
+                                .from(member)
+                                .where(member.id.eq(chatRoom.sellerId)
+                                        .or(member.id.eq(chatRoom.buyerId))
+                                        .and(member.id.ne(memberId))),
                         chatRoom.buyerId,
                         chatRoom.latestChatMessageId,
                         chatRoom.createdAt,
