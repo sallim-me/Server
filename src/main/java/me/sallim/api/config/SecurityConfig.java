@@ -87,6 +87,7 @@ public class SecurityConfig {
                 "/health-check",
                 "/ws-chat/**", // WebSocket endpoint
                 "/product/all",
+                "/product/detail/**", // 상품 상세 조회
                 "/test/public", // 테스트용 공개 엔드포인트
                 "/health-check"));
 
