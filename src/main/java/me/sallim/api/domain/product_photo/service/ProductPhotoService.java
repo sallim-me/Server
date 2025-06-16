@@ -58,7 +58,17 @@ public class ProductPhotoService {
 
             String contentType = file.getContentType();
             if (contentType == null) {
-                contentType = "application/octet-stream";
+                // MIME 타입이 없는 경우 파일 확장자로 추정
+                switch (extension.toLowerCase()) {
+                    case ".jpg", ".jpeg" -> contentType = "image/jpeg";
+                    case ".png" -> contentType = "image/png";
+                    case ".gif" -> contentType = "image/gif";
+                    case ".bmp" -> contentType = "image/bmp";
+                    case ".webp" -> contentType = "image/webp";
+                    case ".tiff", ".tif" -> contentType = "image/tiff";
+                    default -> contentType = "application/octet-stream";
+                }
+                log.info("MIME 타입이 누락되어 파일 확장자로 추정: {} -> {}", extension, contentType);
             }
 
             // Upload to MinIO with PUBLIC_READ access
@@ -193,7 +203,17 @@ public class ProductPhotoService {
 
             String contentType = file.getContentType();
             if (contentType == null) {
-                contentType = "application/octet-stream";
+                // MIME 타입이 없는 경우 파일 확장자로 추정
+                switch (extension.toLowerCase()) {
+                    case ".jpg", ".jpeg" -> contentType = "image/jpeg";
+                    case ".png" -> contentType = "image/png";
+                    case ".gif" -> contentType = "image/gif";
+                    case ".bmp" -> contentType = "image/bmp";
+                    case ".webp" -> contentType = "image/webp";
+                    case ".tiff", ".tif" -> contentType = "image/tiff";
+                    default -> contentType = "application/octet-stream";
+                }
+                log.info("MIME 타입이 누락되어 파일 확장자로 추정: {} -> {}", extension, contentType);
             }
 
             // S3에 새 파일 업로드

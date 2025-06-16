@@ -38,7 +38,7 @@ public class ProductPhotoController {
             - productId: 상품 ID
             - fileName: 저장된 파일명
             - fileUrl: 파일 접근 URL
-            - contentType: 파일 타입 (예: image/jpeg, image/png)
+            - contentType: 파일 타입 (예: image/jpeg, image/png, image/webp)
             - fileSize: 파일 크기 (바이트)
             - createdAt: 생성일시
             - updatedAt: 업데이트일시
