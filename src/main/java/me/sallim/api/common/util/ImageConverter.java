@@ -21,6 +21,9 @@ public class ImageConverter {
     // WebP 변환 가능 여부 (실제 테스트를 통해 확인)
     private static boolean webpConversionAvailable = false;
     
+    // WebP 변환 강제 비활성화 플래그 (테스트용)
+    private static final boolean FORCE_DISABLE_WEBP = Boolean.parseBoolean(System.getProperty("disable.webp.conversion", "false"));
+    
     static {
         // WebP 라이브러리 강제 로딩 및 실제 변환 테스트
         try {
@@ -78,7 +81,7 @@ public class ImageConverter {
                 ImageWriter writer = webpWriters.next();
                 log.info("✅ WebP ImageWriter 발견: {}", writer.getClass().getName());
                 
-                // WebP Writer의 압축 설정 확인
+                // WebP Writer의 압축 설정 확인 (ARM64에서 네이티브 라이브러리 오류 방지)
                 try {
                     javax.imageio.ImageWriteParam writeParam = writer.getDefaultWriteParam();
                     if (writeParam.canWriteCompressed()) {
@@ -91,20 +94,19 @@ public class ImageConverter {
                     } else {
                         log.warn("⚠️ WebP Writer가 압축을 지원하지 않음");
                     }
-                } catch (Exception e) {
-                    log.warn("⚠️ WebP Writer 압축 설정 확인 실패: {}", e.getMessage());
-                }
-                
-                // 실제 WebP 변환 테스트
-                try {
+                    
+                    // 실제 WebP 변환 테스트
                     testWebPConversion(writer);
                     webpConversionAvailable = true;
                     log.info("✅ WebP 변환 테스트 성공 - WebP 변환이 사용 가능합니다");
+                    
                 } catch (UnsatisfiedLinkError e) {
                     log.warn("❌ WebP 네이티브 라이브러리 호환성 문제{}: {}", 
                         IS_ARM64 ? " (ARM64 아키텍처)" : "", e.getMessage());
+                    webpConversionAvailable = false;
                 } catch (Exception e) {
-                    log.warn("❌ WebP 변환 테스트 실패: {}", e.getMessage());
+                    log.warn("❌ WebP Writer 압축 설정 확인 실패: {}", e.getMessage());
+                    webpConversionAvailable = false;
                 }
                 
                 writer.dispose(); // 리소스 정리
@@ -117,6 +119,10 @@ public class ImageConverter {
         
         log.info("WebP 변환 최종 상태: {} (모든 환경에서 시도함)", 
             webpConversionAvailable ? "사용 가능" : "사용 불가");
+        
+        if (FORCE_DISABLE_WEBP) {
+            log.warn("⚠️ WebP 변환이 강제로 비활성화되었습니다 (시스템 프로퍼티: disable.webp.conversion=true)");
+        }
     }
     
     /**
@@ -303,86 +309,105 @@ public class ImageConverter {
     public static MultipartFile convertToWebP(MultipartFile originalFile, float quality) throws IOException {
         log.info("이미지를 WebP로 변환 시도: {} (품질: {}, 아키텍처: {}, WebP 지원: {})", 
             originalFile.getOriginalFilename(), quality, SYSTEM_ARCH, webpConversionAvailable ? "예상됨" : "불확실");
+
+        // WebP 변환 강제 비활성화 체크 (테스트용)
+        if (FORCE_DISABLE_WEBP) {
+            log.info("WebP 변환이 강제로 비활성화됨 (시스템 프로퍼티): {}", originalFile.getOriginalFilename());
+            return originalFile;
+        }
+        
+        // 미리 확인된 WebP 변환 불가능한 경우
+        if (!webpConversionAvailable && IS_ARM64) {
+            log.info("WebP 변환 불가능 환경 (ARM64): {}", originalFile.getOriginalFilename());
+            return originalFile;
+        }
         
         try {
             BufferedImage image = ImageIO.read(originalFile.getInputStream());
             if (image == null) {
                 throw new IOException("이미지 파일을 읽을 수 없습니다: " + originalFile.getOriginalFilename());
             }
-            
+
             // WebP Writer 찾기 (모든 아키텍처에서 시도)
             Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("webp");
             if (!writers.hasNext()) {
                 log.info("WebP ImageWriter가 없어 변환 불가능: {}", originalFile.getOriginalFilename());
                 return originalFile;
             }
-            
+
             ImageWriter writer = writers.next();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            
+
             try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
                 writer.setOutput(ios);
-                
-                // WebP 품질 설정 (Sejda 라이브러리 호환)
-                javax.imageio.ImageWriteParam writeParam = writer.getDefaultWriteParam();
+
+                // WebP 품질 설정 (Sejda 라이브러리 호환, ARM64 안전 처리)
+                javax.imageio.ImageWriteParam writeParam = null;
                 
                 try {
+                    writeParam = writer.getDefaultWriteParam();
+                    
                     // 압축 모드와 품질 설정
                     if (writeParam.canWriteCompressed()) {
                         writeParam.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
-                        
+
                         // 사용 가능한 압축 타입 확인 및 설정
                         String[] compressionTypes = writeParam.getCompressionTypes();
                         if (compressionTypes != null && compressionTypes.length > 0) {
                             writeParam.setCompressionType(compressionTypes[0]); // 첫 번째 압축 타입 사용
                             log.debug("WebP 압축 타입 설정: {}", compressionTypes[0]);
                         }
-                        
+
                         writeParam.setCompressionQuality(quality);
                         log.debug("WebP 압축 품질 설정: {}", quality);
                     }
+                } catch (UnsatisfiedLinkError e) {
+                    // ARM64에서 네이티브 라이브러리 호환성 문제
+                    log.warn("WebP 네이티브 라이브러리 호환성 문제{}: {}", 
+                        IS_ARM64 ? " (ARM64 아키텍처)" : "", e.getMessage());
+                    throw e; // 상위에서 처리하도록 다시 던짐
                 } catch (Exception paramError) {
                     log.warn("WebP 압축 파라미터 설정 실패, 기본 설정 사용: {}", paramError.getMessage());
                     writeParam = null; // 기본 파라미터 사용
                 }
-                
+
                 // 실제 WebP 변환 시도
                 writer.write(null, new javax.imageio.IIOImage(image, null, null), writeParam);
             } finally {
                 writer.dispose();
             }
-            
+
             byte[] webpBytes = baos.toByteArray();
             if (webpBytes.length == 0) {
                 throw new IOException("WebP 변환 결과가 비어있습니다");
             }
-            
+
             String newFilename = getWebPFilename(originalFile.getOriginalFilename());
-            
+
             // 용량 비교
             long originalSize = originalFile.getSize();
             long webpSize = webpBytes.length;
             double compressionRatio = (double) webpSize / originalSize * 100;
-            
-            log.info("WebP 변환 성공{}: {} -> {} ({} bytes -> {} bytes, {:.1f}%)", 
-                IS_ARM64 ? " (ARM64에서도 성공)" : "", 
+
+            log.info("WebP 변환 성공{}: {} -> {} ({} bytes -> {} bytes, {:.1f}%)",
+                IS_ARM64 ? " (ARM64에서도 성공)" : "",
                 originalFile.getOriginalFilename(), newFilename, originalSize, webpSize, compressionRatio);
-            
+
             return new CustomMultipartFile(webpBytes, newFilename, "image/webp");
-            
+
         } catch (UnsatisfiedLinkError e) {
             // 네이티브 라이브러리 호환성 문제 (주로 ARM64)
-            log.warn("네이티브 WebP 라이브러리 호환성 문제{}: {} - {}", 
+            log.warn("네이티브 WebP 라이브러리 호환성 문제{}: {} - {}",
                 IS_ARM64 ? " (ARM64 아키텍처)" : "", originalFile.getOriginalFilename(), e.getMessage());
             return originalFile;
         } catch (NoClassDefFoundError e) {
             // 클래스 로딩 문제
-            log.warn("WebP 라이브러리 클래스 로딩 실패{}: {} - {}", 
+            log.warn("WebP 라이브러리 클래스 로딩 실패{}: {} - {}",
                 IS_ARM64 ? " (ARM64 아키텍처)" : "", originalFile.getOriginalFilename(), e.getMessage());
             return originalFile;
         } catch (Exception e) {
             // 기타 변환 오류
-            log.warn("WebP 변환 실패{}: {} - {}", 
+            log.warn("WebP 변환 실패{}: {} - {}",
                 IS_ARM64 ? " (ARM64 환경)" : "", originalFile.getOriginalFilename(), e.getMessage());
             return originalFile;
         }
