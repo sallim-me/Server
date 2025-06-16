@@ -30,41 +30,75 @@ public class ImageConverter {
             String[] writerNames = ImageIO.getWriterFormatNames();
             log.info("사용 가능한 ImageWriter 포맷: {}", String.join(", ", writerNames));
             
+            // TwelveMonkeys 라이브러리 클래스패스 확인
+            log.info("=== WebP 라이브러리 클래스패스 확인 ===");
+            
+            // TwelveMonkeys (읽기 전용)
+            try {
+                Class<?> twelvemonkeysReaderClass = Class.forName("com.twelvemonkeys.imageio.plugins.webp.WebPImageReader");
+                log.info("✅ TwelveMonkeys WebPImageReader 클래스 로드 성공: {}", twelvemonkeysReaderClass.getName());
+            } catch (ClassNotFoundException e) {
+                log.warn("❌ TwelveMonkeys WebP 라이브러리 로드 실패: {}", e.getMessage());
+            }
+            
+            // Sejda (읽기/쓰기 지원)
+            try {
+                Class<?> sejdaWriterClass = Class.forName("com.luciad.imageio.webp.WebPWriter");
+                log.info("✅ Sejda WebPWriter 클래스 로드 성공: {}", sejdaWriterClass.getName());
+                
+                Class<?> sejdaWriterSpiClass = Class.forName("com.luciad.imageio.webp.WebPImageWriterSpi");
+                log.info("✅ Sejda WebPImageWriterSpi 클래스 로드 성공: {}", sejdaWriterSpiClass.getName());
+                
+            } catch (ClassNotFoundException e) {
+                log.error("❌ Sejda WebP 라이브러리 로드 실패: {}", e.getMessage());
+            }
+            
+            // ImageIO Service Provider 확인
+            log.info("=== ImageIO Service Provider 확인 ===");
+            javax.imageio.spi.IIORegistry registry = javax.imageio.spi.IIORegistry.getDefaultInstance();
+            Iterator<javax.imageio.spi.ImageWriterSpi> writerSpis = registry.getServiceProviders(javax.imageio.spi.ImageWriterSpi.class, true);
+            boolean foundWebpSpi = false;
+            while (writerSpis.hasNext()) {
+                javax.imageio.spi.ImageWriterSpi spi = writerSpis.next();
+                String[] formatNames = spi.getFormatNames();
+                for (String format : formatNames) {
+                    if ("webp".equalsIgnoreCase(format)) {
+                        log.info("✅ WebP ImageWriterSpi 발견: {} (포맷: {})", spi.getClass().getName(), String.join(", ", formatNames));
+                        foundWebpSpi = true;
+                    }
+                }
+            }
+            if (!foundWebpSpi) {
+                log.warn("❌ WebP ImageWriterSpi를 찾을 수 없습니다");
+            }
+            
             // WebP Writer 사용 가능 여부 확인
             Iterator<ImageWriter> webpWriters = ImageIO.getImageWritersByFormatName("webp");
             if (webpWriters.hasNext()) {
                 ImageWriter writer = webpWriters.next();
-                log.info("WebP ImageWriter 발견: {}", writer.getClass().getName());
+                log.info("✅ WebP ImageWriter 발견: {}", writer.getClass().getName());
                 
                 // 실제 WebP 변환 테스트
                 try {
                     testWebPConversion(writer);
                     webpConversionAvailable = true;
-                    log.info("WebP 변환 테스트 성공 - WebP 변환이 사용 가능합니다");
+                    log.info("✅ WebP 변환 테스트 성공 - WebP 변환이 사용 가능합니다");
                 } catch (UnsatisfiedLinkError e) {
-                    log.warn("WebP 네이티브 라이브러리 호환성 문제{}: {}", 
+                    log.warn("❌ WebP 네이티브 라이브러리 호환성 문제{}: {}", 
                         IS_ARM64 ? " (ARM64 아키텍처)" : "", e.getMessage());
                 } catch (Exception e) {
-                    log.warn("WebP 변환 테스트 실패: {}", e.getMessage());
+                    log.warn("❌ WebP 변환 테스트 실패: {}", e.getMessage());
                 }
                 
                 writer.dispose(); // 리소스 정리
             } else {
-                log.warn("WebP ImageWriter를 찾을 수 없습니다. TwelveMonkeys 라이브러리가 제대로 로드되지 않았을 수 있습니다.");
-                
-                // 클래스패스에서 TwelveMonkeys 라이브러리 직접 확인
-                try {
-                    Class.forName("com.twelvemonkeys.imageio.plugins.webp.WebPImageWriter");
-                    log.info("TwelveMonkeys WebP 라이브러리는 클래스패스에 있지만 ImageIO에 등록되지 않았습니다.");
-                } catch (ClassNotFoundException e) {
-                    log.error("TwelveMonkeys WebP 라이브러리가 클래스패스에 없습니다: {}", e.getMessage());
-                }
+                log.warn("❌ WebP ImageWriter를 찾을 수 없습니다");
             }
         } catch (Exception e) {
-            log.error("WebP ImageWriter 초기화 중 오류 발생: {}", e.getMessage());
+            log.error("WebP ImageWriter 초기화 중 오류 발생: {}", e.getMessage(), e);
         }
         
-        log.info("WebP 변환 최종 상태: {} (ARM64 환경에서도 시도함)", 
+        log.info("WebP 변환 최종 상태: {} (모든 환경에서 시도함)", 
             webpConversionAvailable ? "사용 가능" : "사용 불가");
     }
     
