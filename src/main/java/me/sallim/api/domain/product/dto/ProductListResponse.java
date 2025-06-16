@@ -19,6 +19,7 @@ public class ProductListResponse {
     private PostTypeEnum tradeType; // "SELLING" or "BUYING"
     private ApplianceType category; // REFRIGERATOR, WASHING_MACHINE, AIR_CONDITIONER
     private String modelName; // 현재는 빈 문자열 (Product 테이블에 없음)
+    private String modelNumber; // 모델 번호
     private String priceOrQuantity; // 현재는 빈 문자열 (Product 테이블에 없음)
     private String description;
     private Boolean isScraped;
@@ -30,7 +31,7 @@ public class ProductListResponse {
 
     // QueryDSL Projections용 생성자 (isScraped, isAuthor 제외)
     public ProductListResponse(Long id, String title, Integer price, Integer quantity, PostTypeEnum tradeType,
-                             ApplianceType category, String modelName, String description,
+                             ApplianceType category, String modelName, String modelNumber, String description,
                              LocalDateTime createdAt, Long memberId, Boolean isActive, String thumbnailUrl) {
         this.id = id;
         this.title = title;
@@ -39,6 +40,7 @@ public class ProductListResponse {
         this.tradeType = tradeType;
         this.category = category;
         this.modelName = modelName;
+        this.modelNumber = modelNumber;
         this.description = description;
         this.createdAt = createdAt;
         this.memberId = memberId;

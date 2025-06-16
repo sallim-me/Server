@@ -28,7 +28,8 @@ public class ProductQueryRepository {
                         product.productBuying.quantity,
                         product.postType,
                         product.applianceType,
-                        Expressions.constant(""), // modelName은 product 테이블에 없으므로 빈 문자열
+                        product.productSelling.modelName, // modelName은 product 테이블에 없으므로 빈 문자열
+                        product.productSelling.modelNumber,
                         product.content,
                         product.createdAt,
                         product.member.id,
