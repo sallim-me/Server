@@ -22,9 +22,9 @@ public class ProductBuyingService {
 
     @Transactional
     public ProductBuyingDetailResponse createProductBuying(Member loginMember, CreateProductBuyingRequest request) {
-        if (!Boolean.TRUE.equals(loginMember.getIsBuyer())) {
-            throw new IllegalArgumentException("바이어 회원만 구매 글을 작성할 수 있습니다.");
-        }
+        // if (!Boolean.TRUE.equals(loginMember.getIsBuyer())) {
+        //     throw new IllegalArgumentException("바이어 회원만 구매 글을 작성할 수 있습니다.");
+        // }
 //        if (request.quantity() < 3) {
 //            throw new IllegalArgumentException("구매 수량은 최소 3개 이상이어야 합니다.");
 //        }
