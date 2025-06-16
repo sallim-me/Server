@@ -78,6 +78,23 @@ public class ImageConverter {
                 ImageWriter writer = webpWriters.next();
                 log.info("✅ WebP ImageWriter 발견: {}", writer.getClass().getName());
                 
+                // WebP Writer의 압축 설정 확인
+                try {
+                    javax.imageio.ImageWriteParam writeParam = writer.getDefaultWriteParam();
+                    if (writeParam.canWriteCompressed()) {
+                        String[] compressionTypes = writeParam.getCompressionTypes();
+                        if (compressionTypes != null && compressionTypes.length > 0) {
+                            log.info("✅ WebP 압축 타입 사용 가능: {}", String.join(", ", compressionTypes));
+                        } else {
+                            log.warn("⚠️ WebP 압축 타입이 설정되지 않음");
+                        }
+                    } else {
+                        log.warn("⚠️ WebP Writer가 압축을 지원하지 않음");
+                    }
+                } catch (Exception e) {
+                    log.warn("⚠️ WebP Writer 압축 설정 확인 실패: {}", e.getMessage());
+                }
+                
                 // 실제 WebP 변환 테스트
                 try {
                     testWebPConversion(writer);
@@ -118,7 +135,26 @@ public class ImageConverter {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
             writer.setOutput(ios);
-            writer.write(null, new javax.imageio.IIOImage(testImage, null, null), null);
+            
+            // 압축 파라미터 설정
+            javax.imageio.ImageWriteParam writeParam = writer.getDefaultWriteParam();
+            try {
+                if (writeParam.canWriteCompressed()) {
+                    writeParam.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+                    
+                    String[] compressionTypes = writeParam.getCompressionTypes();
+                    if (compressionTypes != null && compressionTypes.length > 0) {
+                        writeParam.setCompressionType(compressionTypes[0]);
+                    }
+                    
+                    writeParam.setCompressionQuality(0.85f);
+                }
+            } catch (Exception e) {
+                // 압축 설정 실패 시 기본 파라미터 사용
+                writeParam = null;
+            }
+            
+            writer.write(null, new javax.imageio.IIOImage(testImage, null, null), writeParam);
         }
         
         // 변환된 데이터가 있는지 확인
@@ -287,14 +323,30 @@ public class ImageConverter {
             try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
                 writer.setOutput(ios);
                 
-                // WebP 품질 설정
+                // WebP 품질 설정 (Sejda 라이브러리 호환)
                 javax.imageio.ImageWriteParam writeParam = writer.getDefaultWriteParam();
-                if (writeParam.canWriteCompressed()) {
-                    writeParam.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
-                    writeParam.setCompressionQuality(quality);
+                
+                try {
+                    // 압축 모드와 품질 설정
+                    if (writeParam.canWriteCompressed()) {
+                        writeParam.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+                        
+                        // 사용 가능한 압축 타입 확인 및 설정
+                        String[] compressionTypes = writeParam.getCompressionTypes();
+                        if (compressionTypes != null && compressionTypes.length > 0) {
+                            writeParam.setCompressionType(compressionTypes[0]); // 첫 번째 압축 타입 사용
+                            log.debug("WebP 압축 타입 설정: {}", compressionTypes[0]);
+                        }
+                        
+                        writeParam.setCompressionQuality(quality);
+                        log.debug("WebP 압축 품질 설정: {}", quality);
+                    }
+                } catch (Exception paramError) {
+                    log.warn("WebP 압축 파라미터 설정 실패, 기본 설정 사용: {}", paramError.getMessage());
+                    writeParam = null; // 기본 파라미터 사용
                 }
                 
-                // 실제 WebP 변환 시도 (ARM64에서도 시도)
+                // 실제 WebP 변환 시도
                 writer.write(null, new javax.imageio.IIOImage(image, null, null), writeParam);
             } finally {
                 writer.dispose();
