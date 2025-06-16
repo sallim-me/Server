@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import me.sallim.api.domain.member.model.Member;
 import me.sallim.api.domain.product_photo.dto.ProductPhotoResponse;
 import me.sallim.api.domain.product_photo.service.ProductPhotoService;
+import me.sallim.api.global.annotation.LoginMember;
 import me.sallim.api.global.response.ApiResponse;
 
 import org.springframework.http.HttpStatus;
@@ -61,7 +63,13 @@ public class ProductPhotoController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductPhotoResponse> uploadPhoto(
             @Parameter(description = "상품 ID") @PathVariable Long productId,
-            @Parameter(description = "업로드할 이미지 파일") @RequestPart("file") MultipartFile file) {
+            @Parameter(description = "업로드할 이미지 파일") @RequestPart("file") MultipartFile file,
+            @LoginMember Member member) {
+        // 권한 체크: 상품 작성자만 사진 업로드 가능
+        if (member == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         ProductPhotoResponse response = productPhotoService.uploadPhotoAndGetResponse(productId, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -192,7 +200,13 @@ public class ProductPhotoController {
     public ResponseEntity<ProductPhotoResponse> updatePhoto(
             @Parameter(description = "상품 ID") @PathVariable Long productId,
             @Parameter(description = "사진 ID") @PathVariable Long photoId,
-            @Parameter(description = "업로드할 새 이미지 파일") @RequestPart("file") MultipartFile file) {
+            @Parameter(description = "업로드할 새 이미지 파일") @RequestPart("file") MultipartFile file,
+            @LoginMember Member member) {
+        // 권한 체크: 상품 작성자만 사진 수정 가능
+        if (member == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         ProductPhotoResponse response = productPhotoService.updatePhoto(productId, photoId, file);
         return ResponseEntity.ok(response);
     }
@@ -211,7 +225,13 @@ public class ProductPhotoController {
     @DeleteMapping("/{photoId}")
     public ResponseEntity<Void> deletePhoto(
             @Parameter(description = "상품 ID") @PathVariable Long productId,
-            @Parameter(description = "사진 ID") @PathVariable Long photoId) {
+            @Parameter(description = "사진 ID") @PathVariable Long photoId,
+            @LoginMember Member member) {
+        // 권한 체크: 상품 작성자만 사진 삭제 가능
+        if (member == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         productPhotoService.deletePhoto(productId, photoId);
         return ResponseEntity.noContent().build();
     }

@@ -81,13 +81,16 @@ public class SecurityConfig {
     }
 
     private String[] getPermittedPaths() {
-        List<String> paths = new ArrayList<>(Arrays.asList(                "/crawler/**",
+        List<String> paths = new ArrayList<>(Arrays.asList(
+                "/crawler/**",
                 "/auth/**",
                 "/member/profile",
                 "/health-check",
                 "/ws-chat/**", // WebSocket endpoint
                 "/product/all",
-                "/product/detail/**", // 상품 상세 조회
+                "/product/selling/**",
+                "/product/buying/**",
+                "/api/v1/products/{productId}/photos/**", // 상품 사진 관련 API
                 "/test/public", // 테스트용 공개 엔드포인트
                 "/health-check"));
 
@@ -103,7 +106,9 @@ public class SecurityConfig {
                     "/webjars/**"));
         }
         return paths.toArray(new String[0]);
-    }    @Bean
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
