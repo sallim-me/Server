@@ -2,6 +2,7 @@ package me.sallim.api.domain.product_photo.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.sallim.api.common.util.ImageConverter;
 import me.sallim.api.domain.product.model.Product;
 import me.sallim.api.domain.product.repository.ProductRepository;
 import me.sallim.api.domain.product_photo.dto.ProductPhotoResponse;
@@ -51,12 +52,15 @@ public class ProductPhotoService {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
 
-            String originalFilename = file.getOriginalFilename();
+            // 이미지를 WebP로 변환 (저장 용량 최적화)
+            MultipartFile processedFile = convertToWebPForStorage(file);
+
+            String originalFilename = processedFile.getOriginalFilename();
             String extension = getFileExtension(originalFilename);
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             String fileName = "product/" + productId + "/" + UUID.randomUUID() + "_" + timestamp + extension;
 
-            String contentType = file.getContentType();
+            String contentType = processedFile.getContentType();
             if (contentType == null) {
                 // MIME 타입이 없는 경우 파일 확장자로 추정
                 switch (extension.toLowerCase()) {
@@ -79,7 +83,7 @@ public class ProductPhotoService {
                                 .contentType(contentType)
                                 .acl("public-read") // 공개 읽기 권한 설정
                                 .build(),
-                        RequestBody.fromBytes(file.getBytes()));
+                        RequestBody.fromBytes(processedFile.getBytes()));
 
                 log.info("File uploaded with public-read ACL");
             } catch (Exception e) {
@@ -90,7 +94,7 @@ public class ProductPhotoService {
                                 .key(fileName)
                                 .contentType(contentType)
                                 .build(),
-                        RequestBody.fromBytes(file.getBytes()));
+                        RequestBody.fromBytes(processedFile.getBytes()));
             }
 
             // DB에는 파일 경로만 저장 (bucket/fileName)
@@ -105,7 +109,7 @@ public class ProductPhotoService {
                     .fileName(fileName)
                     .fileUrl(fileKey) // endpoint 없이 저장
                     .contentType(contentType)
-                    .fileSize(file.getSize())
+                    .fileSize(processedFile.getSize())
                     .build();
 
             return productPhotoRepository.save(productPhoto);
@@ -196,12 +200,13 @@ public class ProductPhotoService {
             }
 
             // 새 파일 업로드 준비
-            String originalFilename = file.getOriginalFilename();
+            MultipartFile processedFile = convertToWebPForStorage(file);
+            String originalFilename = processedFile.getOriginalFilename();
             String extension = getFileExtension(originalFilename);
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             String fileName = "product/" + productId + "/" + UUID.randomUUID() + "_" + timestamp + extension;
 
-            String contentType = file.getContentType();
+            String contentType = processedFile.getContentType();
             if (contentType == null) {
                 // MIME 타입이 없는 경우 파일 확장자로 추정
                 switch (extension.toLowerCase()) {
@@ -222,7 +227,7 @@ public class ProductPhotoService {
                             .key(fileName)
                             .contentType(contentType)
                             .build(),
-                    RequestBody.fromBytes(file.getBytes()));
+                    RequestBody.fromBytes(processedFile.getBytes()));
 
             // DB에는 파일 경로만 저장 (bucket/fileName)
             String fileKey = bucket + "/" + fileName;
@@ -232,7 +237,7 @@ public class ProductPhotoService {
                     fileName,
                     fileKey,
                     contentType,
-                    file.getSize()
+                    processedFile.getSize()
             );
 
             ProductPhoto updatedPhoto = productPhotoRepository.save(existingPhoto);
@@ -282,6 +287,50 @@ public class ProductPhotoService {
 
         // DB에서 정보 삭제
         productPhotoRepository.delete(photo);
+    }
+
+    /**
+     * 저장용 이미지를 최적화 (WebP 우선, 실패 시 고품질 JPEG)
+     */
+    private MultipartFile convertToWebPForStorage(MultipartFile file) {
+        try {
+            // 이미 WebP 파일인 경우 그대로 사용
+            if (ImageConverter.isWebPFile(file)) {
+                log.info("이미 WebP 파일이므로 변환하지 않음: {}", file.getOriginalFilename());
+                return file;
+            }
+            
+            // 이미지 파일인지 확인
+            if (!ImageConverter.isImageFile(file)) {
+                log.warn("이미지 파일이 아니므로 최적화하지 않음: {}", file.getOriginalFilename());
+                return file;
+            }
+            
+            // WebP 변환 시도 (변환 가능한 환경에서만)
+            try {
+                MultipartFile webpResult = ImageConverter.convertToWebP(file, 0.85f);
+                
+                // WebP 변환이 성공했는지 확인
+                if (webpResult != file && webpResult.getOriginalFilename() != null && 
+                    webpResult.getOriginalFilename().toLowerCase().endsWith(".webp")) {
+                    log.info("WebP 변환 성공: {} -> {}", file.getOriginalFilename(), webpResult.getOriginalFilename());
+                    return webpResult;
+                }
+                
+                // WebP 변환이 원본을 반환한 경우 (변환 불가능한 환경)
+                log.info("WebP 변환 불가능, 원본 파일 사용: {}", file.getOriginalFilename());
+                return file;
+                
+            } catch (Exception webpError) {
+                log.info("WebP 변환 실패 ({}), 원본 파일 사용: {}", 
+                    webpError.getClass().getSimpleName(), file.getOriginalFilename());
+                return file;
+            }
+            
+        } catch (Exception e) {
+            log.warn("이미지 최적화 실패, 원본 파일 사용: {} - {}", file.getOriginalFilename(), e.getMessage());
+            return file;
+        }
     }
 
     private String getFileExtension(String fileName) {

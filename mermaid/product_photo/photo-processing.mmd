@@ -1,0 +1,84 @@
+---
+title: "판매글 작성 및 이미지 처리 플로우 (WebP 변환 가능 환경만)"
+config:
+  flowchart:
+    htmlLabels: false
+---
+flowchart TD
+    Start([사용자 판매글 작성 시작]) --> Upload[이미지 파일 업로드]
+    
+    Upload --> CheckFormat{업로드된 파일 형식 확인}
+    
+    %% 업로드된 이미지 형식별 처리
+    CheckFormat -->|webp| DirectWebp[webp 파일 직접 처리]
+    CheckFormat -->|jpg/png/gif| OtherFormat[기타 이미지 형식]
+    
+    %% WebP 변환 시도 (가능한 환경에서만)
+    OtherFormat --> ConvertWebp[ImageConverter.convertToWebP 호출]
+    ConvertWebp --> WebpAttempt[WebP 변환 실제 시도]
+    WebpAttempt --> ConvertResult{변환 결과}
+    
+    ConvertResult -->|성공<br/>Intel/호환 환경| WebpSuccess[webp 변환 완료]
+    ConvertResult -->|실패/불가능<br/>ARM64/기타 환경| OriginalKeep[원본 파일 유지]
+    
+    %% webp 처리 경로
+    DirectWebp --> ValidateWebp[webp 파일 유효성 검증]
+    ValidateWebp --> WebpValid{유효한 webp?}
+    
+    WebpValid -->|유효| WebpSuccess
+    WebpValid -->|손상/무효| ConvertAgain[원본에서 재변환 시도]
+    ConvertAgain --> ConvertWebp
+    
+    %% S3 업로드 및 저장
+    WebpSuccess --> S3Upload[S3에 이미지 업로드]
+    OriginalKeep --> S3Upload
+    
+    S3Upload --> S3Success{S3 업로드 성공?}
+    
+    S3Success -->|성공| SaveDB[DB에 이미지 정보 저장]
+    S3Success -->|실패| UploadError[업로드 실패 처리]
+    
+    SaveDB --> ProductCreate[판매글 생성 완료]
+    
+    %% AI 분석 요청 시 별도 플로우
+    ProductCreate --> AIRequest{AI 분석 요청?}
+    
+    AIRequest -->|예| CheckAIFormat{저장된 파일이 webp?}
+    AIRequest -->|아니오| Complete([처리 완료])
+    
+    CheckAIFormat -->|webp| ConvertPNG[webp → png 변환<br/>AI 호환성 보장]
+    CheckAIFormat -->|기타| DirectAI[직접 AI API 전송]
+    
+    ConvertPNG --> PNGSuccess{png 변환 성공?}
+    PNGSuccess -->|성공| SendAI[FastAPI로 png 전송]
+    PNGSuccess -->|실패| AIError[AI 분석 실패 응답]
+    
+    SendAI --> AIAnalysis[Gemini AI 이미지 분석]
+    DirectAI --> AIAnalysis
+    
+    AIAnalysis --> AIComplete[AI 분석 완료]
+    AIComplete --> Complete
+    
+    %% 에러 처리
+    UploadError --> ErrorResponse[에러 응답 반환]
+    AIError --> ErrorResponse
+    ErrorResponse --> END([처리 종료])
+    
+    Complete --> END
+    
+    %% 스타일링
+    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef success fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef conversion fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef original fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    
+    class Start,END startEnd
+    class Upload,S3Upload,SaveDB,ProductCreate,AIAnalysis process
+    class CheckFormat,ConvertResult,WebpValid,S3Success,AIRequest,CheckAIFormat,PNGSuccess decision
+    class WebpSuccess,Complete,AIComplete success
+    class UploadError,ErrorResponse,AIError error
+    class ConvertWebp,ConvertPNG,ConvertAgain,WebpAttempt conversion
+    class OriginalKeep original
