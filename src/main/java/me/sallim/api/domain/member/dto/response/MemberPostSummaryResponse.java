@@ -24,6 +24,7 @@ public class MemberPostSummaryResponse {
     private String title;
     private ApplianceType applianceType;
     private PostTypeEnum postType;
+    private String priceOrQuantity;
     private String thumbnailUrl;
     private boolean isActive;
     private LocalDateTime createdAt;
@@ -39,6 +40,9 @@ public class MemberPostSummaryResponse {
                 .title(product.getTitle())
                 .applianceType(product.getApplianceType())
                 .postType(product.getPostType())
+                .priceOrQuantity(product.getPostType() == PostTypeEnum.SELLING
+                        ? String.valueOf(product.getProductSelling().getPrice())
+                        : String.valueOf(product.getProductBuying().getQuantity()))
                 .thumbnailUrl(thumbnailUrl)
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
