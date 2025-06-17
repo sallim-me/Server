@@ -26,6 +26,32 @@ public class MemberController {
     private final MemberService memberService;
     private final MemberRepository memberRepository;
 
+    @Operation(
+            summary = "기존 회원 username 중복 체크",
+            description = """
+                회원가입 시 사용하려는 username이 이미 존재하는지 확인합니다.
+                ### Path Variable:
+                - `username` : 중복 체크할 username
+
+                ### 응답 예시:
+                ```json
+                {
+                  "status": 200,
+                  "code": "SUCCESS",
+                  "message": "사용 가능한 username입니다."
+                }
+                ```
+                """
+    )
+    @GetMapping("/check-username/{username}")
+    public ResponseEntity<ApiResponse<String>> checkUsername(@PathVariable String username) {
+        boolean isAvailable = memberService.isUsernameAvailable(username);
+        if (isAvailable) {
+            return ResponseEntity.ok(ApiResponse.success("사용 가능한 username입니다."));
+        } else {
+            return ResponseEntity.badRequest().body(ApiResponse.error("이미 사용 중인 username입니다.", "USERNAME_ALREADY_EXISTS"));
+        }
+    }
 
     @Operation(
             summary = "회원 프로필 설정 (회원가입)",

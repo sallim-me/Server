@@ -29,6 +29,11 @@ public class MemberService {
     @Value("${spring.minio.endpoint}")
     private String minioEndpoint;
 
+    @Transactional(readOnly = true)
+    public boolean isUsernameAvailable(String username) {
+        return memberRepository.findByUsername(username).isEmpty();
+    }
+
     public Long join(MemberJoinRequestDTO request) {
         if (memberRepository.findByUsername(request.username()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
