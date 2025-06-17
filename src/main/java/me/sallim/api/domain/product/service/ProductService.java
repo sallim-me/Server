@@ -46,4 +46,26 @@ public class ProductService {
         
         return products;
     }
+
+    public List<ProductListResponse> getMyProducts(Member currentMember) {
+        List<ProductListResponse> products = productQueryRepository.findMyProducts(currentMember.getId());
+
+        // 각 상품에 대해 isScraped 설정
+        for (ProductListResponse product : products) {
+            if (currentMember != null) {
+                // 스크랩 여부 확인
+                boolean isScraped = scrapService.isProductScrappedByMember(product.getId(), currentMember.getId());
+                product.setIsScraped(isScraped);
+            } else {
+                product.setIsScraped(false);
+            }
+
+            // thumbnail URL 설정
+            if (product.getThumbnailUrl() != null) {
+                product.setThumbnailUrl(endpoint + "/" + product.getThumbnailUrl());
+            }
+        }
+
+        return products;
+    }
 }

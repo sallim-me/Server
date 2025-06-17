@@ -87,4 +87,53 @@ public class ProductController {
         List<ProductListResponse> products = productService.getAllProducts(member);
         return ResponseEntity.ok(ApiResponse.success(products));
     }
+
+    @Operation(
+            summary = "내 상품 목록 조회",
+            description = """
+            로그인한 사용자가 작성한 모든 상품(판매글 + 구매글)을 조회합니다.
+            각 상품에는 제목, 거래 타입, 가전 타입, 모델명, 가격/수량, 설명, 스크랩 여부, 작성자 여부, 작성일시가 포함됩니다.
+            
+            ### 응답 예시:
+            ```json
+            {
+              "status": 200,
+              "code": "SUCCESS",
+              "message": "요청이 성공했습니다.",
+              "data": [
+                {
+                  "id": 12,
+                  "title": "삼성 냉장고 팝니다",
+                  "tradeType": "SELLING",
+                  "category": "REFRIGERATOR",
+                  "modelName": "",
+                  "priceOrQuantity": "",
+                  "description": "거의 새 제품입니다",
+                  "isScraped": false,
+                  "isAuthor": true,
+                  "createdAt": "2024-05-01T14:30:00"
+                },
+                {
+                  "id": 7,
+                  "title": "세탁기 구매 희망",
+                  "tradeType": "BUYING",
+                  "category": "WASHING_MACHINE",
+                  "modelName": "",
+                  "priceOrQuantity": "",
+                  "description": "급하게 구매하고 싶습니다",
+                  "isScraped": true,
+                  "isAuthor": false,
+                  "createdAt": "2024-04-28T11:10:00"
+                }
+              ]
+            }
+            ```
+            """
+    )
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<List<ProductListResponse>>> getMyProducts(
+            @LoginMember Member member) {
+        List<ProductListResponse> products = productService.getMyProducts(member);
+        return ResponseEntity.ok(ApiResponse.success(products));
+    }
 }

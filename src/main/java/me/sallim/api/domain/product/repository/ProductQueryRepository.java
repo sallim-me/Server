@@ -43,6 +43,35 @@ public class ProductQueryRepository {
                 .orderBy(product.createdAt.desc())
                 .fetch();
     }
+
+    public List<ProductListResponse> findMyProducts(Long memberId) {
+        QProduct product = QProduct.product;
+
+        // Product 테이블만 사용하여 모든 상품 조회
+        return queryFactory
+                .select(Projections.constructor(ProductListResponse.class,
+                        product.id,
+                        product.title,
+                        product.productSelling.price,
+                        product.productBuying.quantity,
+                        product.postType,
+                        product.applianceType,
+                        product.productSelling.modelName, // modelName은 product 테이블에 없으므로 빈 문자열
+                        product.productSelling.modelNumber,
+                        product.content,
+                        product.createdAt,
+                        product.member.id,
+                        product.isActive,
+                        product.productPhotoId.fileUrl
+                ))
+                .from(product)
+                .leftJoin(product.productPhotoId)
+                .leftJoin(product.productSelling)
+                .leftJoin(product.productBuying)
+                .where(product.member.id.eq(memberId))
+                .orderBy(product.createdAt.desc())
+                .fetch();
+    }
     
     public Long findSellerIdById(Long productId) {
         QProduct product = QProduct.product;
