@@ -29,12 +29,17 @@ public class MemberPostSummaryResponse {
     private LocalDateTime createdAt;
 
     public static MemberPostSummaryResponse from(Product product, String endpoint) {
+        String thumbnailUrl = null;
+        if (product.getProductPhotoId() != null && product.getProductPhotoId().getFileUrl() != null) {
+            thumbnailUrl = endpoint + "/" + product.getProductPhotoId().getFileUrl();
+        }
+
         return MemberPostSummaryResponse.builder()
                 .productId(product.getId())
                 .title(product.getTitle())
                 .applianceType(product.getApplianceType())
                 .postType(product.getPostType())
-                .thumbnailUrl(endpoint + "/" + product.getProductPhotoId().getFileUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
                 .build();
